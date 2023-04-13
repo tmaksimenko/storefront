@@ -48,4 +48,10 @@ public class AccountServiceImpl implements AccountService {
         return "SUCCESS";
     }
 
+    @Override
+    public String deleteAccount(String username) {
+        accountRepository.deleteById(username);
+        return "SUCCESS";
+    }
+
 }

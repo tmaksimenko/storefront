@@ -42,10 +42,25 @@ public class AccountController {
     }
 
     @PutMapping("/update")
+    @SuppressWarnings("all")
     public ResponseEntity<String> updateAccount(@RequestBody Account account) {
         Optional<Account> oldAccount = accountService.findById(account.getUsername());
         ResponseEntity<String> responseEntity;
-        if (oldAccount.isPresent()) responseEntity = new ResponseEntity<>(accountService.updateAccount(oldAccount.get(), account), HttpStatus.OK);
+
+        if (oldAccount.isPresent())
+            responseEntity = new ResponseEntity<>(accountService.updateAccount(oldAccount.get(), account), HttpStatus.OK);
+        else
+            responseEntity = new ResponseEntity<>("NOT FOUND", HttpStatus.NOT_FOUND);
+
+        return responseEntity;
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<String> deleteAccount(@RequestParam String username) {
+        ResponseEntity<String> responseEntity;
+
+        if (accountService.findById(username).isPresent())
+            responseEntity = new ResponseEntity<>(accountService.deleteAccount(username), HttpStatus.OK);
         else responseEntity = new ResponseEntity<>("NOT FOUND", HttpStatus.NOT_FOUND);
 
         return responseEntity;
