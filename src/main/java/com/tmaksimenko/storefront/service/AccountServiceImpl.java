@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +17,11 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public List<Account> findAll() {
         return accountRepository.findAll();
+    }
+
+    @Override
+    public Optional<Account> findById(String username) {
+        return accountRepository.findById(username);
     }
 
 }
