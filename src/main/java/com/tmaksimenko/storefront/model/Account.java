@@ -28,6 +28,9 @@ public class Account {
     String password;
 
     @Column(name = "create_time")
-    Timestamp create_time=new Timestamp(new Date().getTime());
+    Timestamp create_time = new Timestamp(new Date().getTime());
+
+    @Column(name = "last_modified")
+    Timestamp last_modified = null;
 
 }
