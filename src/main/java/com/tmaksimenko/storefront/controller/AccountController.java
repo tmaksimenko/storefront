@@ -35,10 +35,15 @@ public class AccountController {
         return ResponseEntity.of(optionalAccount);
     }
 
+    @RequestMapping("")
+    public ResponseEntity<String> defaultResponse() {
+        return new ResponseEntity<>("This is a mock storefront built with Spring!", HttpStatus.OK);
+    }
+
     @PostMapping("/add")
     public ResponseEntity<String> addAccount(@RequestBody AccountDto accountDto) {
         String result = accountService.createAccount(accountDto);
-        return new ResponseEntity<> (result, HttpStatus.OK);
+        return new ResponseEntity<> (result, HttpStatus.CREATED);
     }
 
     @PutMapping("/update")
