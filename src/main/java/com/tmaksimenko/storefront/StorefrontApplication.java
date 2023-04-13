@@ -1,4 +1,4 @@
-package com.itcsystems.storefront;
+package com.tmaksimenko.storefront;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
