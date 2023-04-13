@@ -1,5 +1,6 @@
 package com.tmaksimenko.storefront.controller;
 
+import com.tmaksimenko.storefront.dto.AccountDto;
 import com.tmaksimenko.storefront.model.Account;
 import com.tmaksimenko.storefront.service.AccountService;
 import lombok.AccessLevel;
@@ -8,10 +9,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +33,12 @@ public class AccountController {
     public ResponseEntity<Account> findById(@RequestParam String username) {
         Optional<Account> optionalAccount = accountService.findById(username);
         return ResponseEntity.of(optionalAccount);
+    }
+
+    @PostMapping("/add")
+    public ResponseEntity<String> addUser(@RequestBody AccountDto accountDto) {
+        String result = accountService.createAccount(accountDto);
+        return new ResponseEntity<> (result, HttpStatus.OK);
     }
 
 }

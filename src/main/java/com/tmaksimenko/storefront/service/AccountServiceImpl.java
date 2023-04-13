@@ -1,5 +1,6 @@
 package com.tmaksimenko.storefront.service;
 
+import com.tmaksimenko.storefront.dto.AccountDto;
 import com.tmaksimenko.storefront.model.Account;
 import com.tmaksimenko.storefront.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,19 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Optional<Account> findById(String username) {
         return accountRepository.findById(username);
+    }
+
+    @Override
+    public String createAccount(AccountDto accountDto) {
+        Account account = new Account();
+
+        account.setUsername(accountDto.getUsername());
+        account.setEmail(accountDto.getEmail());
+        account.setPassword(accountDto.getPassword());
+
+        accountRepository.save(account);
+
+        return "SUCCESS";
     }
 
 }
