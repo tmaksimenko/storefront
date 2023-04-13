@@ -38,4 +38,14 @@ public class AccountServiceImpl implements AccountService {
         return "SUCCESS";
     }
 
+    @Override
+    public String updateAccount(Account oldAccount, Account account) {
+        if (account.getEmail() != null) oldAccount.setEmail(account.getEmail());
+        if (account.getPassword() != null) oldAccount.setPassword(account.getPassword());
+
+        accountRepository.save(oldAccount);
+
+        return "SUCCESS";
+    }
+
 }

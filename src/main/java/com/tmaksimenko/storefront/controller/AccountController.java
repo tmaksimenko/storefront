@@ -36,9 +36,19 @@ public class AccountController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<String> addUser(@RequestBody AccountDto accountDto) {
+    public ResponseEntity<String> addAccount(@RequestBody AccountDto accountDto) {
         String result = accountService.createAccount(accountDto);
         return new ResponseEntity<> (result, HttpStatus.OK);
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<String> updateAccount(@RequestBody Account account) {
+        Optional<Account> oldAccount = accountService.findById(account.getUsername());
+        ResponseEntity<String> responseEntity;
+        if (oldAccount.isPresent()) responseEntity = new ResponseEntity<>(accountService.updateAccount(oldAccount.get(), account), HttpStatus.OK);
+        else responseEntity = new ResponseEntity<>("NOT FOUND", HttpStatus.NOT_FOUND);
+
+        return responseEntity;
     }
 
 }

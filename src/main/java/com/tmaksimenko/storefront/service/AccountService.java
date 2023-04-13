@@ -14,4 +14,6 @@ public interface AccountService {
 
     String createAccount(AccountDto accountDto);
 
+    String updateAccount(Account oldAccount, Account account);
+
 }
