@@ -3,7 +3,7 @@ package com.tmaksimenko.storefront.controller;
 import com.tmaksimenko.storefront.dto.AccountDto;
 import com.tmaksimenko.storefront.model.Account;
 import com.tmaksimenko.storefront.model.Order;
-import com.tmaksimenko.storefront.service.AccountService;
+import com.tmaksimenko.storefront.service.account.AccountService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

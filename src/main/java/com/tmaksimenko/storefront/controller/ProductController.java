@@ -1,8 +1,8 @@
 package com.tmaksimenko.storefront.controller;
 
-import com.tmaksimenko.storefront.dto.ProductDto;
+import com.tmaksimenko.storefront.dto.product.ProductDto;
 import com.tmaksimenko.storefront.model.Product;
-import com.tmaksimenko.storefront.service.ProductService;
+import com.tmaksimenko.storefront.service.product.ProductService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.dto;
+package com.tmaksimenko.storefront.dto.product;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -7,8 +7,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-
-import java.util.List;
 
 import static lombok.AccessLevel.PRIVATE;
 
@@ -19,11 +17,14 @@ import static lombok.AccessLevel.PRIVATE;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor
-public class OrderDto {
+public class ProductDto {
 
-    Long id;
+    long id;
 
-    String username;
+    String name;
 
-    List<ProductDto> products;
+    String brand;
+
+    float price;
+
 }

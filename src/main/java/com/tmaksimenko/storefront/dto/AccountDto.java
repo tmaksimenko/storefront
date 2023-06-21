@@ -2,6 +2,7 @@ package com.tmaksimenko.storefront.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tmaksimenko.storefront.dto.order.OrderDto;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 

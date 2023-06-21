@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.service;
+package com.tmaksimenko.storefront.service.account;
 
 import com.tmaksimenko.storefront.dto.AccountDto;
 import com.tmaksimenko.storefront.model.Account;

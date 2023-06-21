@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.service;
+package com.tmaksimenko.storefront.service.product;
 
 import com.tmaksimenko.storefront.model.Product;
 

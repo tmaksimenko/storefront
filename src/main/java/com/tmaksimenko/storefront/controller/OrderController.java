@@ -1,9 +1,9 @@
 package com.tmaksimenko.storefront.controller;
 
-import com.tmaksimenko.storefront.dto.OrderCreateDto;
-import com.tmaksimenko.storefront.dto.OrderDto;
+import com.tmaksimenko.storefront.dto.order.OrderCreateDto;
+import com.tmaksimenko.storefront.dto.order.OrderDto;
 import com.tmaksimenko.storefront.model.Order;
-import com.tmaksimenko.storefront.service.OrderService;
+import com.tmaksimenko.storefront.service.order.OrderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -27,6 +27,7 @@ public class OrderController {
     public ResponseEntity<List<OrderDto>> findAll() {
         List<Order> orders = orderService.findAll();
         List<OrderDto> orderDtos = orders.stream().map(Order::toDto).toList();
+
         return new ResponseEntity<>(orderDtos, HttpStatus.OK);
     }
 
