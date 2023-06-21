@@ -7,10 +7,12 @@ import com.tmaksimenko.storefront.model.Product;
 import com.tmaksimenko.storefront.repository.AccountRepository;
 import com.tmaksimenko.storefront.repository.OrderRepository;
 import com.tmaksimenko.storefront.repository.ProductRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,13 +36,9 @@ public class OrderServiceImpl implements OrderService {
         if (accounts.size() != 1) return "FAILURE";
         order.setAccount(accounts.get(0));
 
-        Set<Product> products = new HashSet<>();
-
-        for (Long productId : orderCreateDto.getProductIds()) {
-            Optional<Product> optionalProduct = productRepository.findById(String.valueOf(productId));
-            if (optionalProduct.isEmpty()) return "FAILURE";
-            products.add(optionalProduct.get());
-        }
+        Set<Product> products = orderCreateDto.getProductIds().stream().map(
+                x -> productRepository.findById(String.valueOf(x)).orElseThrow(EntityNotFoundException::new)
+        ).collect(Collectors.toSet());
 
         order.setProducts(products);
 
