@@ -2,10 +2,11 @@ package com.tmaksimenko.storefront.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-
-import java.util.List;
 
 import static lombok.AccessLevel.PRIVATE;
 
@@ -16,14 +17,14 @@ import static lombok.AccessLevel.PRIVATE;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor
-public class AccountDto {
+public class ProductDto {
 
-    String username;
+    long id;
 
-    String email;
+    String name;
 
-    String password;
+    String brand;
 
-    List<OrderDto> orders;
+    float price;
 
 }

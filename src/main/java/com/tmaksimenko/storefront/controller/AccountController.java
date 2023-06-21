@@ -2,6 +2,7 @@ package com.tmaksimenko.storefront.controller;
 
 import com.tmaksimenko.storefront.dto.AccountDto;
 import com.tmaksimenko.storefront.model.Account;
+import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.service.AccountService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,9 +26,17 @@ public class AccountController {
     AccountService accountService;
 
     @GetMapping("/all")
-    public ResponseEntity<List<Account>> findAll() {
+    public ResponseEntity<List<AccountDto>> findAll() {
         List<Account> accounts = accountService.findAll();
-        return new ResponseEntity<>(accounts, HttpStatus.OK);
+        List<AccountDto> accountDtos  = accounts.stream().map(
+                x -> new AccountDto(
+                            x.getUsername(),
+                            x.getEmail(),
+                            x.getPassword(),
+                            x.getOrders().stream().map(Order::toDto).collect(Collectors.toList())
+                        )
+        ).toList();
+        return new ResponseEntity<>(accountDtos, HttpStatus.OK);
     }
 
     @GetMapping("/view")

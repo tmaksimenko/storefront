@@ -1,36 +1,42 @@
 package com.tmaksimenko.storefront.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Set;
 
 @Entity
 @Data
 @Table(name = "accounts")
+@EqualsAndHashCode(exclude = "orders")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Account {
 
     @Id
-    @Column(name = "username")
+    Long id;
+
     String username;
 
-    @Column(name = "email")
     String email;
 
-    @Column(name = "password")
     String password;
 
-    @Column(name = "create_time")
-    Timestamp create_time = new Timestamp(new Date().getTime());
+    final Timestamp create_time = new Timestamp(new Date().getTime());
 
-    @Column(name = "last_modified")
     Timestamp last_modified = null;
+
+    String address;
+
+    String postal_code;
+
+    String country;
+
+    @OneToMany(mappedBy = "account", fetch = FetchType.EAGER)
+    Set<Order> orders;
 
 }

@@ -21,6 +21,8 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(authorize ->
                         authorize.requestMatchers("/accounts/**").permitAll()
                                 .requestMatchers("accounts").permitAll()
+                                .requestMatchers("/orders/**").permitAll()
+                                .requestMatchers("/products/**").permitAll()
                                 .anyRequest().authenticated()
                         );
         return httpSecurity.build();
