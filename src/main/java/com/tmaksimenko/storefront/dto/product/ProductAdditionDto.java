@@ -9,11 +9,11 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductIdWithQuantity {
+public class ProductAdditionDto {
     Long productId;
     int quantity;
 
-    public ProductIdWithQuantity(Long productId) {
+    public ProductAdditionDto(Long productId) {
         this.productId = productId;
         this.quantity = 1;
     }

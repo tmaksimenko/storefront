@@ -2,7 +2,7 @@ package com.tmaksimenko.storefront.dto.order;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tmaksimenko.storefront.dto.product.ProductIdWithQuantity;
+import com.tmaksimenko.storefront.dto.product.ProductAdditionDto;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -23,17 +23,7 @@ public class OrderCreateDto {
 
     String username;
 
-    List<ProductIdWithQuantity> productIdsWithQuantities;
-
-//    List<Long> productIds;
-//
-//    List<Integer> productQuantities;
-//
-//    public OrderCreateDto (Long id, String username, List<Long> productIds) {
-//        this.id = id;
-//        this.username = username;
-//        this.productIds = productIds;
-//    }
+    List<ProductAdditionDto> productAdditionDtos;
 
 }
 

@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldDefaults;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -25,12 +26,10 @@ public class Product {
 
     float price;
 
-    double originlat;
+    double weight;
 
-    double originlong;
-
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    Set<OrderProduct> orderProducts;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    Set<OrderProduct> orderProducts = new HashSet<>();
 
     public ProductDto toDto(){
         return new ProductDto(this.id, this.name, this.brand, this.price);

@@ -17,12 +17,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/products")
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProductController {
 
-    @Autowired
-    ProductService productService;
+    final ProductService productService;
 
     @GetMapping("/all")
     public ResponseEntity<List<ProductDto>> findAll() {
@@ -30,6 +29,5 @@ public class ProductController {
         List<ProductDto> productDtos = products.stream().map(Product::toDto).toList();
         return new ResponseEntity<>(productDtos, HttpStatus.OK);
     }
-
 
 }

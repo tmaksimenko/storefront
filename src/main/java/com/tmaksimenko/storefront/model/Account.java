@@ -4,20 +4,25 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import java.sql.Timestamp;
-import java.util.Date;
+import java.time.Instant;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Data
 @Table(name = "accounts")
+@Data
 @EqualsAndHashCode(exclude = "orders")
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Account {
 
     @Id
+    @GeneratedValue
     Long id;
 
     String username;
@@ -26,17 +31,16 @@ public class Account {
 
     String password;
 
-    final Timestamp create_time = new Timestamp(new Date().getTime());
+    @CreationTimestamp
+    Instant createTime;
 
-    Timestamp last_modified = null;
+    @UpdateTimestamp
+    Instant lastModified;
 
-    String address;
+    @Embedded
+    Address address;
 
-    String postal_code;
-
-    String country;
-
-    @OneToMany(mappedBy = "account", fetch = FetchType.EAGER)
-    Set<Order> orders;
+    @OneToMany(mappedBy = "account")
+    Set<Order> orders = new HashSet<>();
 
 }

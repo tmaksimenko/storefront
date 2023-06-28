@@ -1,22 +1,21 @@
 package com.tmaksimenko.storefront.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tmaksimenko.storefront.dto.order.OrderDto;
+import com.tmaksimenko.storefront.model.Address;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import static lombok.AccessLevel.PRIVATE;
 
 @Data
-@EqualsAndHashCode(callSuper=false)
-@FieldDefaults(level = PRIVATE)
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class AccountDto {
 
     String username;
@@ -25,6 +24,8 @@ public class AccountDto {
 
     String password;
 
-    List<OrderDto> orders;
+    Address address;
+
+    List<OrderDto> orders = new ArrayList<>();
 
 }

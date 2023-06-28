@@ -1,6 +1,7 @@
 package com.tmaksimenko.storefront.controller;
 
 import com.tmaksimenko.storefront.dto.AccountDto;
+import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.service.account.AccountService;
@@ -11,74 +12,78 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/accounts")
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AccountController {
 
-    @Autowired
-    AccountService accountService;
+    final AccountService accountService;
 
     @GetMapping("/all")
     public ResponseEntity<List<AccountDto>> findAll() {
         List<Account> accounts = accountService.findAll();
         List<AccountDto> accountDtos  = accounts.stream().map(
-                x -> new AccountDto(
-                            x.getUsername(),
-                            x.getEmail(),
-                            x.getPassword(),
-                            x.getOrders().stream().map(Order::toDto).collect(Collectors.toList())
-                        )
+                x -> AccountDto.builder()
+                        .username(x.getUsername())
+                        .email(x.getEmail())
+                        .password(x.getPassword())
+                        .orders(x.getOrders().stream().map(Order::toDto).toList()).build()
         ).toList();
         return new ResponseEntity<>(accountDtos, HttpStatus.OK);
     }
 
     @GetMapping("/view")
     public ResponseEntity<Account> findById(@RequestParam String username) {
-        Optional<Account> optionalAccount = accountService.findById(username);
+        Optional<Account> optionalAccount = accountService.findByUsername(username);
         return ResponseEntity.of(optionalAccount);
     }
 
     @RequestMapping("")
     public ResponseEntity<String> defaultResponse() {
-        return new ResponseEntity<>("This is a mock storefront built with Spring!", HttpStatus.OK);
+        return new ResponseEntity<>("This is a mock storefront built with Spring Boot!",
+                HttpStatus.OK);
     }
 
     @PostMapping("/add")
     public ResponseEntity<String> addAccount(@RequestBody AccountDto accountDto) {
-        String result = accountService.createAccount(accountDto);
-        return new ResponseEntity<> (result, HttpStatus.CREATED);
+        return accountService.createAccount(accountDto);
     }
 
     @PutMapping("/update")
     @SuppressWarnings("all")
-    public ResponseEntity<String> updateAccount(@RequestBody Account account) {
-        Optional<Account> oldAccount = accountService.findById(account.getUsername());
-        ResponseEntity<String> responseEntity;
+    public ResponseEntity<String> updateAccount(@RequestBody AccountDto accountDto) {
+        Optional<Account> oldAccount = accountService.findByUsername(accountDto.getUsername());
+
+        if (oldAccount.isEmpty())
+            oldAccount = accountService.findByEmail(accountDto.getEmail());
 
         if (oldAccount.isPresent())
-            responseEntity = new ResponseEntity<>(accountService.updateAccount(oldAccount.get(), account), HttpStatus.OK);
-        else
-            responseEntity = new ResponseEntity<>("NOT FOUND", HttpStatus.NOT_FOUND);
+            return accountService.updateAccount(oldAccount.get(), accountDto);
 
-        return responseEntity;
+        return new ResponseEntity<>("ACCOUNT NOT FOUND", HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteAccount(@RequestParam String username) {
-        ResponseEntity<String> responseEntity;
+    public ResponseEntity<String> deleteAccount(@RequestParam Map<String,String> params) {
 
-        if (accountService.findById(username).isPresent())
-            responseEntity = new ResponseEntity<>(accountService.deleteAccount(username), HttpStatus.OK);
-        else responseEntity = new ResponseEntity<>("NOT FOUND", HttpStatus.NOT_FOUND);
+        if (!params.containsKey("username"))
+            return new ResponseEntity<>("NO USERNAME GIVEN", HttpStatus.NOT_FOUND);
 
-        return responseEntity;
+        try {
+            return accountService
+                    .deleteAccount(
+                            accountService.findByUsername(params.get("username"))
+                            .orElseThrow(AccountNotFoundException::new).getId());
+        } catch (AccountNotFoundException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", e);
+        }
     }
 
 }

@@ -20,11 +20,11 @@ public class OrderProduct {
     @EmbeddedId
     OrderProductId id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("orderId")
     Order order;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("productId")
     Product product;
 

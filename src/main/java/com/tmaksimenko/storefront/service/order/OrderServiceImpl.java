@@ -1,24 +1,31 @@
 package com.tmaksimenko.storefront.service.order;
 
 import com.tmaksimenko.storefront.dto.order.OrderCreateDto;
-import com.tmaksimenko.storefront.model.Account;
+import com.tmaksimenko.storefront.exception.AccountNotFoundException;
+import com.tmaksimenko.storefront.exception.OrderNotFoundException;
+import com.tmaksimenko.storefront.exception.ProductNotFoundException;
 import com.tmaksimenko.storefront.model.Order;
-import com.tmaksimenko.storefront.repository.AccountRepository;
 import com.tmaksimenko.storefront.repository.OrderRepository;
 import com.tmaksimenko.storefront.repository.ProductRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.tmaksimenko.storefront.service.account.AccountService;
+import com.tmaksimenko.storefront.service.product.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class OrderServiceImpl implements OrderService {
 
     final OrderRepository orderRepository;
-    final AccountRepository accountRepository;
     final ProductRepository productRepository;
+
+    final AccountService accountService;
+    final ProductService productService;
 
     @Override
     public List<Order> findAll () {
@@ -26,27 +33,29 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public String createOrder(OrderCreateDto orderCreateDto) {
+    public ResponseEntity<String> createOrder(OrderCreateDto orderCreateDto) {
 
-        Order order = new Order(true);
+        Order order = new Order();
 
-        List<Account> accounts = accountRepository.findByUsername(orderCreateDto.getUsername());
-        if (accounts.size() != 1) return "FAILURE";
-        order.setAccount(accounts.get(0));
+        order.setAccount(accountService.findByUsername(orderCreateDto.getUsername())
+                .orElseThrow(AccountNotFoundException::new));
 
-//        Set<Product> products = orderCreateDto.getProductIds().stream().map(
-//                x -> productRepository.findById(String.valueOf(x)).orElseThrow(EntityNotFoundException::new)
-//        ).collect(Collectors.toSet());
-//
-//        order.setOrderProducts(products);
-
-        orderCreateDto.getProductIdsWithQuantities().forEach(
-                x -> order.addProduct(productRepository.findById(String.valueOf(x.getProductId()))
-                    .orElseThrow(EntityNotFoundException::new), x.getQuantity()));
+        orderCreateDto.getProductAdditionDtos().forEach(
+                x -> order.addProduct(
+                        productRepository.findById(x.getProductId())
+                                .orElseThrow(ProductNotFoundException::new),
+                        x.getQuantity()));
 
         orderRepository.save(order);
 
-        return "SUCCESS";
+        return new ResponseEntity<>("ORDER CREATED", HttpStatus.CREATED);
+    }
+
+    @Override
+    public ResponseEntity<String> deleteOrder(Long id) throws OrderNotFoundException {
+        orderRepository.deleteById(id);
+        orderRepository.flush();
+        return new ResponseEntity<>("ORDER DELETED", HttpStatus.OK);
     }
 
 }

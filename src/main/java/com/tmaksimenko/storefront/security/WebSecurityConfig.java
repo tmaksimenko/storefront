@@ -23,6 +23,7 @@ public class WebSecurityConfig {
                                 .requestMatchers("accounts").permitAll()
                                 .requestMatchers("/orders/**").permitAll()
                                 .requestMatchers("/products/**").permitAll()
+                                .requestMatchers("/**").permitAll()
                                 .anyRequest().authenticated()
                         );
         return httpSecurity.build();
