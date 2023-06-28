@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.security;
+package com.tmaksimenko.storefront.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +23,6 @@ public class WebSecurityConfig {
                                 .requestMatchers("accounts").permitAll()
                                 .requestMatchers("/orders/**").permitAll()
                                 .requestMatchers("/products/**").permitAll()
-                                .requestMatchers("/**").permitAll()
                                 .anyRequest().authenticated()
                         );
         return httpSecurity.build();

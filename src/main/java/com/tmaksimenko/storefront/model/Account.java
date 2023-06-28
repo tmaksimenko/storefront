@@ -1,5 +1,6 @@
 package com.tmaksimenko.storefront.model;
 
+import com.tmaksimenko.storefront.enums.Role;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -30,6 +31,8 @@ public class Account {
     String email;
 
     String password;
+
+    Role role;
 
     @CreationTimestamp
     Instant createTime;
