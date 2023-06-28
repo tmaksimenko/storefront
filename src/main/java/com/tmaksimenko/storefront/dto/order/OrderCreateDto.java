@@ -19,8 +19,6 @@ import static lombok.AccessLevel.PRIVATE;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderCreateDto {
 
-    Long id;
-
     String username;
 
     List<ProductAdditionDto> productAdditionDtos;

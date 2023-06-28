@@ -1,13 +1,16 @@
 package com.tmaksimenko.storefront.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tmaksimenko.storefront.dto.product.ProductDto;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderProductDto {
 
     Long orderId;

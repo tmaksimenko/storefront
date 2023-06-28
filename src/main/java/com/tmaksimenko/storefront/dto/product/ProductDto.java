@@ -9,10 +9,10 @@ import lombok.experimental.FieldDefaults;
 import static lombok.AccessLevel.PRIVATE;
 
 @Data
-@FieldDefaults(level = PRIVATE)
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor
+@FieldDefaults(level = PRIVATE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProductDto {
 
     long id;

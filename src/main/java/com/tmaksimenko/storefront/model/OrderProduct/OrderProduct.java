@@ -1,13 +1,13 @@
 package com.tmaksimenko.storefront.model.OrderProduct;
 
 import com.tmaksimenko.storefront.dto.OrderProductDto;
+import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.model.Product;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import com.tmaksimenko.storefront.model.Order;
 
 import java.util.Objects;
 
@@ -20,11 +20,11 @@ public class OrderProduct {
     @EmbeddedId
     OrderProductId id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @MapsId("orderId")
     Order order;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @MapsId("productId")
     Product product;
 
@@ -61,7 +61,10 @@ public class OrderProduct {
     }
 
     public OrderProductDto toDto () {
-        return (new OrderProductDto(this.order.getId(), this.product.toDto(), this.quantity));
+        return OrderProductDto.builder()
+                .productDto(this.product.toDto())
+                .quantity(this.quantity)
+                .build();
     }
 
 }

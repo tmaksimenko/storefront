@@ -47,12 +47,37 @@ public class Order {
                 (quantity == 0) ? 1 : quantity
                 );
         orderProducts.add(orderProduct);
-        product.getOrderProducts().add(orderProduct);
     }
 
-    public OrderDto toDto() {
-        return new OrderDto(this.id, this.account.getUsername(),
-                this.orderProducts.stream().map(OrderProduct::toDto).collect(Collectors.toList()));
+    public void changeProductQuantity (Long productId, int quantity) {
+        for (OrderProduct orderProduct : orderProducts) {
+            if (orderProduct.getProduct().getId() == productId) {
+                if (quantity == 0)
+                    orderProducts.remove(orderProduct);
+                else
+                    orderProduct.setQuantity(quantity);
+                break;
+            }
+        }
+    }
+
+    public void clear () {
+        orderProducts.clear();
+    }
+
+    public OrderDto toPlainDto() {
+         return OrderDto.builder()
+                .id(this.id)
+                .username(this.account.getUsername())
+                .items(this.orderProducts.stream().map(OrderProduct::toDto).collect(Collectors.toList()))
+                .build();
+    }
+
+    public OrderDto toFullDto() {
+        OrderDto orderDto = this.toPlainDto();
+        orderDto.setCreateTime(this.createTime);
+        orderDto.setUpdateTime(this.updateTime);
+        return orderDto;
     }
 
 }

@@ -6,7 +6,6 @@ import com.tmaksimenko.storefront.exception.OrderNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.repository.OrderRepository;
-import com.tmaksimenko.storefront.repository.ProductRepository;
 import com.tmaksimenko.storefront.service.account.AccountService;
 import com.tmaksimenko.storefront.service.product.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -15,14 +14,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class OrderServiceImpl implements OrderService {
 
     final OrderRepository orderRepository;
-    final ProductRepository productRepository;
 
     final AccountService accountService;
     final ProductService productService;
@@ -30,6 +29,11 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<Order> findAll () {
         return orderRepository.findAll();
+    }
+
+    @Override
+    public Optional<Order> findById(Long id) {
+        return orderRepository.findById(id);
     }
 
     @Override
@@ -42,7 +46,7 @@ public class OrderServiceImpl implements OrderService {
 
         orderCreateDto.getProductAdditionDtos().forEach(
                 x -> order.addProduct(
-                        productRepository.findById(x.getProductId())
+                        productService.findById(x.getProductId())
                                 .orElseThrow(ProductNotFoundException::new),
                         x.getQuantity()));
 

@@ -27,22 +27,37 @@ public class AccountController {
     final AccountService accountService;
 
     @GetMapping("/all")
-    public ResponseEntity<List<AccountDto>> findAll() {
+    public ResponseEntity<List<AccountDto>> viewAll() {
         List<Account> accounts = accountService.findAll();
         List<AccountDto> accountDtos  = accounts.stream().map(
                 x -> AccountDto.builder()
                         .username(x.getUsername())
                         .email(x.getEmail())
-                        .password(x.getPassword())
-                        .orders(x.getOrders().stream().map(Order::toDto).toList()).build()
+                        .orders(x.getOrders().stream().map(Order::toPlainDto).toList()).build()
         ).toList();
         return new ResponseEntity<>(accountDtos, HttpStatus.OK);
     }
 
     @GetMapping("/view")
-    public ResponseEntity<Account> findById(@RequestParam String username) {
-        Optional<Account> optionalAccount = accountService.findByUsername(username);
-        return ResponseEntity.of(optionalAccount);
+    public ResponseEntity<AccountDto> viewAccountDetails(@RequestParam String usernameOrEmail) {
+        Optional<Account> optionalAccount = accountService.findByUsername(usernameOrEmail);
+
+        if (optionalAccount.isEmpty())
+            optionalAccount = accountService.findByEmail(usernameOrEmail);
+
+        if (optionalAccount.isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
+
+        AccountDto accountDto = AccountDto.builder()
+                .username(optionalAccount.get().getUsername())
+                .email(optionalAccount.get().getEmail())
+                .address(optionalAccount.get().getAddress())
+                .createTime(optionalAccount.get().getCreateTime())
+                .lastModified(optionalAccount.get().getLastModified())
+                .orders(optionalAccount.get().getOrders().stream().map(Order::toPlainDto).toList())
+                .build();
+
+        return new ResponseEntity<>(accountDto, HttpStatus.OK);
     }
 
     @RequestMapping("")
