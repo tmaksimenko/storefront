@@ -1,5 +1,5 @@
 package com.tmaksimenko.storefront.enums;
 
-public enum Role {
+public enum RolesEnum {
     USER, ADMIN
 }

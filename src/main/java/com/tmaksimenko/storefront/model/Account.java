@@ -1,6 +1,6 @@
 package com.tmaksimenko.storefront.model;
 
-import com.tmaksimenko.storefront.enums.Role;
+import com.tmaksimenko.storefront.enums.RolesEnum;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -32,7 +32,7 @@ public class Account {
 
     String password;
 
-    Role role;
+    RolesEnum role = RolesEnum.USER;
 
     @CreationTimestamp
     Instant createTime;
