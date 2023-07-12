@@ -3,6 +3,9 @@ server:
   error:
     include-stacktrace: never
 
+logging.level:
+  org.springframework.security: trace
+
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -12,10 +15,5 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-
     generate-ddl: true
     show-sql: true
-
-logging:
-  level:
-    org.hibernate.type: trace

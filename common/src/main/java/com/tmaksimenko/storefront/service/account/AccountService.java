@@ -11,12 +11,14 @@ public interface AccountService {
 
     List<Account> findAll();
 
+    @SuppressWarnings("unused")
     Optional<Account> findById(Long id);
 
     Optional<Account> findByUsername(String username);
 
-
     Optional<Account> findByEmail(String email);
+
+    Optional<Account> findByLogin(String login);
 
     ResponseEntity<String> createAccount(AccountDto accountDto);
 

@@ -44,6 +44,12 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public Optional<Account> findByLogin (String login) {
+        return this.findByUsername(login).isEmpty() ?
+                this.findByEmail(login) : this.findByUsername(login);
+    }
+
+    @Override
     public ResponseEntity<String> createAccount(AccountDto accountDto) {
         if (!accountRepository.findByUsername(accountDto.getUsername()).isEmpty())
             return new ResponseEntity<>("ACCOUNT ALREADY EXISTS", HttpStatus.FORBIDDEN);

@@ -1,11 +1,8 @@
 package com.tmaksimenko.storefront.model;
 
-import com.tmaksimenko.storefront.enums.RolesEnum;
+import com.tmaksimenko.storefront.enums.Role;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -18,6 +15,8 @@ import java.util.Set;
 @Table(name = "accounts")
 @Data
 @EqualsAndHashCode(exclude = "orders")
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Account {
@@ -32,16 +31,17 @@ public class Account {
 
     String password;
 
-    RolesEnum role = RolesEnum.USER;
+    @Enumerated(value = EnumType.STRING)
+    Role role = Role.ROLE_USER;
+
+    @Embedded
+    Address address;
 
     @CreationTimestamp
     Instant createTime;
 
     @UpdateTimestamp
     Instant lastModified;
-
-    @Embedded
-    Address address;
 
     @OneToMany(mappedBy = "account")
     Set<Order> orders = new HashSet<>();
