@@ -24,7 +24,7 @@ public class Account extends BaseEntity {
 
     String password;
 
-    @Enumerated(value = EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     Role role = Role.ROLE_USER;
 
     @Embedded
