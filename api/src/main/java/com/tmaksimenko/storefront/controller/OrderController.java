@@ -33,7 +33,7 @@ public class OrderController {
     @GetMapping("/all")
     public ResponseEntity<List<OrderDto>> viewAll() {
         List<Order> orders = orderService.findAll();
-        List<OrderDto> orderDtos = orders.stream().map(Order::toPlainDto).toList();
+        List<OrderDto> orderDtos = orders.stream().map(Order::toFullDto).toList();
         return new ResponseEntity<>(orderDtos, HttpStatus.OK);
     }
 

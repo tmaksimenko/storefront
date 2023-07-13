@@ -2,6 +2,7 @@ package com.tmaksimenko.storefront.model;
 
 import com.tmaksimenko.storefront.dto.order.OrderDto;
 import com.tmaksimenko.storefront.model.OrderProduct.OrderProduct;
+import com.tmaksimenko.storefront.model.Payment.Payment;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,6 +27,9 @@ public class Order extends BaseEntity {
                 cascade = CascadeType.ALL,
                 orphanRemoval = true )
     Set<OrderProduct> orderProducts = new HashSet<>();
+
+    @OneToOne(mappedBy = "order")
+    Payment payment;
 
     public void addProduct (Product product, int quantity) {
         OrderProduct orderProduct = new OrderProduct(this, product,
@@ -62,6 +66,7 @@ public class Order extends BaseEntity {
     public OrderDto toFullDto() {
         OrderDto orderDto = this.toPlainDto();
         orderDto.setAudit(this.getAudit());
+        orderDto.setPayment(this.getPayment());
         return orderDto;
     }
 

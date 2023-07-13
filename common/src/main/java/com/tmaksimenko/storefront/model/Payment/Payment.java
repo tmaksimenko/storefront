@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tmaksimenko.storefront.enums.PaymentProvider;
 import com.tmaksimenko.storefront.enums.PaymentStatus;
 import com.tmaksimenko.storefront.model.BaseEntity;
+import com.tmaksimenko.storefront.model.Order;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -20,4 +21,8 @@ public class Payment extends BaseEntity {
     @JsonIgnore
     @Embedded
     PaymentInfo paymentInfo;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", referencedColumnName = "id")
+    Order order;
 }
