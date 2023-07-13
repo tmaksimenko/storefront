@@ -1,6 +1,7 @@
 package com.tmaksimenko.storefront.service.account;
 
-import com.tmaksimenko.storefront.dto.AccountDto;
+import com.tmaksimenko.storefront.dto.AccountCreateDto;
+import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
 import com.tmaksimenko.storefront.repository.AccountRepository;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,39 +52,51 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ResponseEntity<String> createAccount(AccountDto accountDto) {
-        if (!accountRepository.findByUsername(accountDto.getUsername()).isEmpty())
+    public ResponseEntity<String> createAccount(AccountCreateDto accountCreateDto) {
+        if (!accountRepository.findByUsername(accountCreateDto.getUsername()).isEmpty())
             return new ResponseEntity<>("ACCOUNT ALREADY EXISTS", HttpStatus.FORBIDDEN);
 
-        Account account = new Account();
+        if (Arrays.stream(Role.values()).noneMatch((role) ->
+                role.equals(accountCreateDto.getRole())))
+            return new ResponseEntity<>("ACCOUNT NEEDS ROLE", HttpStatus.FORBIDDEN);
 
-        if (accountDto.getEmail().isEmpty() || accountDto.getPassword().isEmpty())
-            return new ResponseEntity<>("ACCOUNT NEEDS EMAIL AND PASSWORD", HttpStatus.FORBIDDEN);
+        if (    accountCreateDto.getUsername().isEmpty() ||
+                accountCreateDto.getEmail().isEmpty() ||
+                accountCreateDto.getPassword().isEmpty())
+            return new ResponseEntity<>("ACCOUNT NEEDS ALL FIELDS", HttpStatus.FORBIDDEN);
 
-        account.setUsername(accountDto.getUsername());
-        account.setEmail(accountDto.getEmail());
-        account.setPassword(accountDto.getPassword());
-
-        accountRepository.save(account);
+        accountRepository.save(Account.builder()
+                .username(accountCreateDto.getUsername())
+                .email(accountCreateDto.getEmail())
+                .password(accountCreateDto.getPassword())
+                .role(accountCreateDto.getRole())
+                .build());
 
         return new ResponseEntity<>("SUCCESS", HttpStatus.CREATED);
     }
 
     @Override
-    public ResponseEntity<String> updateAccount(Account oldAccount, AccountDto accountDto) {
+    public ResponseEntity<String> updateAccount(Account oldAccount, AccountCreateDto accountCreateDto) {
         List<String> changedList = new ArrayList<>();
 
-        if (!StringUtils.isEmpty(accountDto.getUsername()))  {
-            oldAccount.setUsername(accountDto.getUsername());
+        if (!StringUtils.isEmpty(accountCreateDto.getUsername()))  {
+            oldAccount.setUsername(accountCreateDto.getUsername());
             changedList.add("USERNAME");
         }
-        if (!StringUtils.isEmpty(accountDto.getEmail())) {
-            oldAccount.setEmail(accountDto.getEmail());
+        if (!StringUtils.isEmpty(accountCreateDto.getEmail())) {
+            oldAccount.setEmail(accountCreateDto.getEmail());
             changedList.add("EMAIL");
         }
-        if (!StringUtils.isEmpty(accountDto.getPassword())) {
-            oldAccount.setPassword(accountDto.getPassword());
+        if (!StringUtils.isEmpty(accountCreateDto.getPassword())) {
+            oldAccount.setPassword(accountCreateDto.getPassword());
             changedList.add("PASSWORD");
+        }
+        if (!(accountCreateDto.getRole().equals(oldAccount.getRole()))) {
+            if (Arrays.stream(Role.values()).anyMatch((role) ->
+                    role.equals(accountCreateDto.getRole()))) {
+                oldAccount.setRole(accountCreateDto.getRole());
+                changedList.add("ROLE");
+            } else return new ResponseEntity<>("INVALID ROLE GIVEN", HttpStatus.FORBIDDEN);
         }
 
         accountRepository.save(oldAccount);
@@ -95,6 +109,19 @@ public class AccountServiceImpl implements AccountService {
         if (accountRepository.findById(id).isEmpty())
             throw new AccountNotFoundException();
         accountRepository.deleteById(id);
+        return new ResponseEntity<>("ACCOUNT DELETED", HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<String> deleteAccount(String login) {
+        Optional<Account> optionalAccount = this.findByUsername(login);
+        if (optionalAccount.isEmpty()) {
+            optionalAccount = this.findByEmail(login);
+            if (optionalAccount.isEmpty())
+                throw new AccountNotFoundException();
+        }
+
+        accountRepository.deleteById(optionalAccount.get().getId());
         return new ResponseEntity<>("ACCOUNT DELETED", HttpStatus.OK);
     }
 

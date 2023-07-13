@@ -1,33 +1,23 @@
 package com.tmaksimenko.storefront.dto.order;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tmaksimenko.storefront.dto.OrderProductDto;
-import lombok.AllArgsConstructor;
+import com.tmaksimenko.storefront.model.Audit;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.FieldDefaults;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.Instant;
 import java.util.List;
 
-import static lombok.AccessLevel.PRIVATE;
-
-@Data
+@Getter
+@Setter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@FieldDefaults(level = PRIVATE)
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderDto {
 
     Long id;
 
     String username;
 
-    Instant createTime;
-
-    Instant updateTime;
+    Audit audit;
 
     List<OrderProductDto> items;
 }

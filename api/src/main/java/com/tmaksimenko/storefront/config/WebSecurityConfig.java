@@ -32,7 +32,7 @@ public class WebSecurityConfig {
                 .requestMatchers("/login", "/accounts/all", "/error").permitAll()
                 .requestMatchers("/orders/all").authenticated()
                 .anyRequest().hasAuthority("ROLE_ADMIN")
-                .and().formLogin();
+                .and().formLogin().defaultSuccessUrl("/accounts/all");
         return httpSecurity.build();
     }
 

@@ -2,16 +2,16 @@ package com.tmaksimenko.storefront;
 
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
+import com.tmaksimenko.storefront.model.Audit;
 import com.tmaksimenko.storefront.repository.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static com.tmaksimenko.storefront.enums.Role.ROLE_ADMIN;
@@ -30,12 +30,12 @@ public class StorefrontApplication {
 	}
 
 	@Bean
-	public CommandLineRunner commandLineRunner(	) { return args -> {
+	public CommandLineRunner commandLineRunner() { return args -> {
 		try {
 			accountRepository.delete(Optional.ofNullable(accountRepository.findByUsername("Admin").isEmpty() ?
 					null : accountRepository.findByUsername("Admin").get(0)).orElseThrow(AccountNotFoundException::new));
 		} catch (AccountNotFoundException e) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", e);
+			System.out.println("Account not found");
 		}
 
 		Account account = Account.builder()
@@ -43,6 +43,7 @@ public class StorefrontApplication {
 				.email("admin@mail.com")
 				.password(passwordEncoder.encode("password"))
 				.role(ROLE_ADMIN)
+				.audit(Audit.builder().createdOn(LocalDateTime.now()).createdBy("Admin").build())
 				.build();
 		accountRepository.save(account);
 	};

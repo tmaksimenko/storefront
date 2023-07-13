@@ -4,18 +4,15 @@ import com.tmaksimenko.storefront.dto.OrderProductDto;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.model.Product;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.experimental.FieldDefaults;
 
 import java.util.Objects;
 
-@Data
-@NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "orders_products")
+@Data
+@NoArgsConstructor
 public class OrderProduct {
     @EmbeddedId
     OrderProductId id;
@@ -30,6 +27,7 @@ public class OrderProduct {
 
     int quantity;
 
+    @SuppressWarnings("unused")
     public OrderProduct (Order order, Product product) {
         this.order = order;
         this.product = product;

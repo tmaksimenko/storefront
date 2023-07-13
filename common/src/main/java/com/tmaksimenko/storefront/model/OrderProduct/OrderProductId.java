@@ -2,17 +2,17 @@ package com.tmaksimenko.storefront.model.OrderProduct;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Objects;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Embeddable
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderProductId implements Serializable {
     @Column (name = "order_id")
     Long orderId;

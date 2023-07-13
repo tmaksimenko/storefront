@@ -2,6 +2,7 @@ package com.tmaksimenko.storefront.exception;
 
 import jakarta.persistence.EntityNotFoundException;
 
+@SuppressWarnings("unused")
 public class OrderNotFoundException extends EntityNotFoundException {
     public OrderNotFoundException() {}
 

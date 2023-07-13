@@ -1,5 +1,6 @@
 package com.tmaksimenko.storefront.controller;
 
+import com.tmaksimenko.storefront.dto.AccountCreateDto;
 import com.tmaksimenko.storefront.dto.AccountDto;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
@@ -52,8 +53,7 @@ public class AccountController {
                 .username(optionalAccount.get().getUsername())
                 .email(optionalAccount.get().getEmail())
                 .address(optionalAccount.get().getAddress())
-                .createTime(optionalAccount.get().getCreateTime())
-                .lastModified(optionalAccount.get().getLastModified())
+                .audit(optionalAccount.get().getAudit())
                 .orders(optionalAccount.get().getOrders().stream().map(Order::toPlainDto).toList())
                 .build();
 
@@ -67,20 +67,20 @@ public class AccountController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<String> addAccount(@RequestBody AccountDto accountDto) {
-        return accountService.createAccount(accountDto);
+    public ResponseEntity<String> addAccount(@RequestBody AccountCreateDto accountCreateDto) {
+        return accountService.createAccount(accountCreateDto);
     }
 
     @PutMapping("/update")
     @SuppressWarnings("all")
-    public ResponseEntity<String> updateAccount(@RequestBody AccountDto accountDto) {
-        Optional<Account> oldAccount = accountService.findByUsername(accountDto.getUsername());
+    public ResponseEntity<String> updateAccount(@RequestBody AccountCreateDto accountCreateDto) {
+        Optional<Account> oldAccount = accountService.findByUsername(accountCreateDto.getUsername());
 
         if (oldAccount.isEmpty())
-            oldAccount = accountService.findByEmail(accountDto.getEmail());
+            oldAccount = accountService.findByEmail(accountCreateDto.getEmail());
 
         if (oldAccount.isPresent())
-            return accountService.updateAccount(oldAccount.get(), accountDto);
+            return accountService.updateAccount(oldAccount.get(), accountCreateDto);
 
         return new ResponseEntity<>("ACCOUNT NOT FOUND", HttpStatus.NOT_FOUND);
     }

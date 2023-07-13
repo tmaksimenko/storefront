@@ -3,15 +3,10 @@ package com.tmaksimenko.storefront.model;
 import com.tmaksimenko.storefront.dto.order.OrderDto;
 import com.tmaksimenko.storefront.model.OrderProduct.OrderProduct;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,23 +14,13 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name="orders")
 @Data
-@EqualsAndHashCode(exclude = "orderProducts")
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class Order {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+@EqualsAndHashCode(exclude = "orderProducts")
+public class Order extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id")
     Account account;
-
-    @CreationTimestamp
-    Instant createTime;
-
-    @UpdateTimestamp
-    Instant updateTime;
 
     @OneToMany( mappedBy = "order",
                 cascade = CascadeType.ALL,
@@ -61,13 +46,14 @@ public class Order {
         }
     }
 
+    @SuppressWarnings("unused")
     public void clear () {
         orderProducts.clear();
     }
 
     public OrderDto toPlainDto() {
          return OrderDto.builder()
-                .id(this.id)
+                .id(this.getId())
                 .username(this.account.getUsername())
                 .items(this.orderProducts.stream().map(OrderProduct::toDto).collect(Collectors.toList()))
                 .build();
@@ -75,8 +61,7 @@ public class Order {
 
     public OrderDto toFullDto() {
         OrderDto orderDto = this.toPlainDto();
-        orderDto.setCreateTime(this.createTime);
-        orderDto.setUpdateTime(this.updateTime);
+        orderDto.setAudit(this.getAudit());
         return orderDto;
     }
 

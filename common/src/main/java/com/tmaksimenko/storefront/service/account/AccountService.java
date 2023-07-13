@@ -1,6 +1,6 @@
 package com.tmaksimenko.storefront.service.account;
 
-import com.tmaksimenko.storefront.dto.AccountDto;
+import com.tmaksimenko.storefront.dto.AccountCreateDto;
 import com.tmaksimenko.storefront.model.Account;
 import org.springframework.http.ResponseEntity;
 
@@ -20,10 +20,13 @@ public interface AccountService {
 
     Optional<Account> findByLogin(String login);
 
-    ResponseEntity<String> createAccount(AccountDto accountDto);
+    ResponseEntity<String> createAccount(AccountCreateDto accountCreateDto);
 
-    ResponseEntity<String> updateAccount(Account oldAccount, AccountDto accountDto);
+    ResponseEntity<String> updateAccount(Account oldAccount, AccountCreateDto accountCreateDto);
 
     ResponseEntity<String> deleteAccount(Long id);
+
+    @SuppressWarnings("unused")
+    ResponseEntity<String> deleteAccount(String login);
 
 }

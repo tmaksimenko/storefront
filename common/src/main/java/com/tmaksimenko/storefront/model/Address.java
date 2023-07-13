@@ -1,12 +1,13 @@
 package com.tmaksimenko.storefront.model;
 
 import jakarta.persistence.Embeddable;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
+import lombok.*;
 
-@Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Embeddable
 public class Address {
     String streetAddress;

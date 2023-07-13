@@ -4,10 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tmaksimenko.storefront.dto.product.ProductDto;
 import com.tmaksimenko.storefront.model.OrderProduct.OrderProduct;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.experimental.FieldDefaults;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +14,6 @@ import java.util.Set;
 @Data
 @Table(name="products")
 @EqualsAndHashCode(exclude = "orderProducts")
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Product {
     @Id
     long id;

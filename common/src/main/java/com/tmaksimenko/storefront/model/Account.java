@@ -2,28 +2,21 @@ package com.tmaksimenko.storefront.model;
 
 import com.tmaksimenko.storefront.enums.Role;
 import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Table(name = "accounts")
 @Data
-@EqualsAndHashCode(exclude = "orders")
-@Builder
-@AllArgsConstructor
+@SuperBuilder
 @NoArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class Account {
-
-    @Id
-    @GeneratedValue
-    Long id;
+@EqualsAndHashCode(exclude = "orders")
+public class Account extends BaseEntity {
 
     String username;
 
@@ -36,12 +29,6 @@ public class Account {
 
     @Embedded
     Address address;
-
-    @CreationTimestamp
-    Instant createTime;
-
-    @UpdateTimestamp
-    Instant lastModified;
 
     @OneToMany(mappedBy = "account")
     Set<Order> orders = new HashSet<>();

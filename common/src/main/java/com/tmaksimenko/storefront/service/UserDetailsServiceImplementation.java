@@ -19,7 +19,7 @@ import java.util.Optional;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class UserDetailsServiceImplementation implements UserDetailsService {
 
-    private final AccountService accountService;
+    final AccountService accountService;
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
@@ -34,8 +34,8 @@ public class UserDetailsServiceImplementation implements UserDetailsService {
                     AuthorityUtils.createAuthorityList(account.getRole().toString())
             );
         } else
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
-
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND",
+                    new AccountNotFoundException());
     }
 
 }
