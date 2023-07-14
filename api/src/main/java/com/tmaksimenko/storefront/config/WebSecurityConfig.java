@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,7 +20,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @EnableWebSecurity
-//@EnableMethodSecurity
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
     private final UserDetailsService userDetailsService;
@@ -29,10 +30,11 @@ public class WebSecurityConfig {
         httpSecurity
                 .csrf().disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/login", "/accounts/all", "/error").permitAll()
+                .requestMatchers("/login", "/error", "/register").permitAll()
+                .requestMatchers("/v3/**", "/swagger-ui/**").authenticated()
                 .requestMatchers("/orders/all").authenticated()
-                .anyRequest().hasAuthority("ROLE_ADMIN")
-                .and().formLogin().defaultSuccessUrl("/accounts/all");
+                .anyRequest().hasRole("ADMIN")
+                .and().formLogin();//.defaultSuccessUrl("/accounts/all");
         return httpSecurity.build();
     }
 

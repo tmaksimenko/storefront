@@ -36,4 +36,5 @@ public class OrderProductId implements Serializable {
     public int hashCode() {
         return Objects.hash(orderId, productId);
     }
+
 }

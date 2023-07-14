@@ -15,6 +15,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -45,6 +46,7 @@ public class OrderController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException());
     }
 
+    @PreAuthorize("hasRole('ADMIN') or authentication.principal.username.equals(#orderCreateDto.username)")
     @PostMapping("/create")
     public ResponseEntity<String> createOrder(@RequestBody OrderCreateDto orderCreateDto) {
         try {

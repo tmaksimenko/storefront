@@ -1,8 +1,9 @@
 package com.tmaksimenko.storefront.model.Payment;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tmaksimenko.storefront.enums.PaymentProvider;
-import com.tmaksimenko.storefront.enums.PaymentStatus;
+import com.tmaksimenko.storefront.dto.PaymentDto;
+import com.tmaksimenko.storefront.enums.Payment.PaymentProvider;
+import com.tmaksimenko.storefront.enums.Payment.PaymentStatus;
 import com.tmaksimenko.storefront.model.BaseEntity;
 import com.tmaksimenko.storefront.model.Order;
 import jakarta.persistence.*;
@@ -25,4 +26,12 @@ public class Payment extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", referencedColumnName = "id")
     Order order;
+
+    public PaymentDto toDto () {
+        return PaymentDto.builder()
+                .id(this.getId())
+                .paymentStatus(this.paymentStatus)
+                .paymentProvider(this.paymentProvider)
+                .build();
+    }
 }

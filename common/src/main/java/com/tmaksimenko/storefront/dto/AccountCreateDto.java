@@ -1,11 +1,14 @@
 package com.tmaksimenko.storefront.dto;
 
 import com.tmaksimenko.storefront.enums.Role;
-import lombok.Builder;
-import lombok.Getter;
+import com.tmaksimenko.storefront.model.Audit;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.experimental.SuperBuilder;
 
-@Getter
-@Builder
+@Data
+@SuperBuilder
+@AllArgsConstructor
 public class AccountCreateDto {
 
     String username;
@@ -14,6 +17,8 @@ public class AccountCreateDto {
 
     String password;
 
-    Role role;
+    public AccountDto toFullDto (Role role, Audit audit) {
+        return AccountDto.builder().username(username).email(email).password(password).role(role).audit(audit).build();
+    }
 
 }

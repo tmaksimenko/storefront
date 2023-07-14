@@ -1,6 +1,5 @@
 package com.tmaksimenko.storefront.controller;
 
-import com.tmaksimenko.storefront.dto.AccountCreateDto;
 import com.tmaksimenko.storefront.dto.AccountDto;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
@@ -12,6 +11,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -26,15 +26,17 @@ import java.util.Optional;
 public class AccountController {
 
     final AccountService accountService;
+    final PasswordEncoder passwordEncoder;
 
     @GetMapping("/all")
     public ResponseEntity<List<AccountDto>> viewAll() {
         List<Account> accounts = accountService.findAll();
         List<AccountDto> accountDtos  = accounts.stream().map(
-                x -> AccountDto.builder()
+                x -> (AccountDto)(AccountDto.builder()
                         .username(x.getUsername())
                         .email(x.getEmail())
-                        .orders(x.getOrders().stream().map(Order::toPlainDto).toList()).build()
+                        .orderDtos(x.getOrders().stream().map(Order::toPlainDto).toList())
+                        .build())
         ).toList();
         return new ResponseEntity<>(accountDtos, HttpStatus.OK);
     }
@@ -53,8 +55,9 @@ public class AccountController {
                 .username(optionalAccount.get().getUsername())
                 .email(optionalAccount.get().getEmail())
                 .address(optionalAccount.get().getAddress())
+                .role(optionalAccount.get().getRole())
                 .audit(optionalAccount.get().getAudit())
-                .orders(optionalAccount.get().getOrders().stream().map(Order::toPlainDto).toList())
+                .orderDtos(optionalAccount.get().getOrders().stream().map(Order::toPlainDto).toList())
                 .build();
 
         return new ResponseEntity<>(accountDto, HttpStatus.OK);
@@ -67,20 +70,21 @@ public class AccountController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<String> addAccount(@RequestBody AccountCreateDto accountCreateDto) {
-        return accountService.createAccount(accountCreateDto);
+    public ResponseEntity<String> addAccount(@RequestBody AccountDto accountDto) {
+        accountDto.setPassword(passwordEncoder.encode(accountDto.getPassword()));
+        return accountService.createAccount(accountDto);
     }
 
     @PutMapping("/update")
     @SuppressWarnings("all")
-    public ResponseEntity<String> updateAccount(@RequestBody AccountCreateDto accountCreateDto) {
-        Optional<Account> oldAccount = accountService.findByUsername(accountCreateDto.getUsername());
+    public ResponseEntity<String> updateAccount(@RequestBody AccountDto accountDto) {
+        Optional<Account> oldAccount = accountService.findByUsername(accountDto.getUsername());
 
         if (oldAccount.isEmpty())
-            oldAccount = accountService.findByEmail(accountCreateDto.getEmail());
+            oldAccount = accountService.findByEmail(accountDto.getEmail());
 
         if (oldAccount.isPresent())
-            return accountService.updateAccount(oldAccount.get(), accountCreateDto);
+            return accountService.updateAccount(oldAccount.get(), accountDto);
 
         return new ResponseEntity<>("ACCOUNT NOT FOUND", HttpStatus.NOT_FOUND);
     }

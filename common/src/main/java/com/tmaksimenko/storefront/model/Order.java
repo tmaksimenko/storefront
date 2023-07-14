@@ -60,13 +60,13 @@ public class Order extends BaseEntity {
                 .id(this.getId())
                 .username(this.account.getUsername())
                 .items(this.orderProducts.stream().map(OrderProduct::toDto).collect(Collectors.toList()))
+                 .paymentDto(this.getPayment().toDto())
                 .build();
     }
 
     public OrderDto toFullDto() {
         OrderDto orderDto = this.toPlainDto();
         orderDto.setAudit(this.getAudit());
-        orderDto.setPayment(this.getPayment());
         return orderDto;
     }
 

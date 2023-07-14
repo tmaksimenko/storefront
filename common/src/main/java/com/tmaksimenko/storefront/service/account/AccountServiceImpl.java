@@ -1,6 +1,6 @@
 package com.tmaksimenko.storefront.service.account;
 
-import com.tmaksimenko.storefront.dto.AccountCreateDto;
+import com.tmaksimenko.storefront.dto.AccountDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
@@ -52,49 +52,49 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ResponseEntity<String> createAccount(AccountCreateDto accountCreateDto) {
-        if (!accountRepository.findByUsername(accountCreateDto.getUsername()).isEmpty())
+    public ResponseEntity<String> createAccount(AccountDto accountDto) {
+        if (!accountRepository.findByUsername(accountDto.getUsername()).isEmpty())
             return new ResponseEntity<>("ACCOUNT ALREADY EXISTS", HttpStatus.FORBIDDEN);
 
         if (Arrays.stream(Role.values()).noneMatch((role) ->
-                role.equals(accountCreateDto.getRole())))
+                role.equals(accountDto.getRole())))
             return new ResponseEntity<>("ACCOUNT NEEDS ROLE", HttpStatus.FORBIDDEN);
 
-        if (    accountCreateDto.getUsername().isEmpty() ||
-                accountCreateDto.getEmail().isEmpty() ||
-                accountCreateDto.getPassword().isEmpty())
+        if (    accountDto.getUsername().isEmpty() ||
+                accountDto.getEmail().isEmpty() ||
+                accountDto.getPassword().isEmpty())
             return new ResponseEntity<>("ACCOUNT NEEDS ALL FIELDS", HttpStatus.FORBIDDEN);
 
         accountRepository.save(Account.builder()
-                .username(accountCreateDto.getUsername())
-                .email(accountCreateDto.getEmail())
-                .password(accountCreateDto.getPassword())
-                .role(accountCreateDto.getRole())
+                .username(accountDto.getUsername())
+                .email(accountDto.getEmail())
+                .password(accountDto.getPassword())
+                .role(accountDto.getRole())
                 .build());
 
         return new ResponseEntity<>("SUCCESS", HttpStatus.CREATED);
     }
 
     @Override
-    public ResponseEntity<String> updateAccount(Account oldAccount, AccountCreateDto accountCreateDto) {
+    public ResponseEntity<String> updateAccount(Account oldAccount, AccountDto accountDto) {
         List<String> changedList = new ArrayList<>();
 
-        if (!StringUtils.isEmpty(accountCreateDto.getUsername()))  {
-            oldAccount.setUsername(accountCreateDto.getUsername());
+        if (!StringUtils.isEmpty(accountDto.getUsername()))  {
+            oldAccount.setUsername(accountDto.getUsername());
             changedList.add("USERNAME");
         }
-        if (!StringUtils.isEmpty(accountCreateDto.getEmail())) {
-            oldAccount.setEmail(accountCreateDto.getEmail());
+        if (!StringUtils.isEmpty(accountDto.getEmail())) {
+            oldAccount.setEmail(accountDto.getEmail());
             changedList.add("EMAIL");
         }
-        if (!StringUtils.isEmpty(accountCreateDto.getPassword())) {
-            oldAccount.setPassword(accountCreateDto.getPassword());
+        if (!StringUtils.isEmpty(accountDto.getPassword())) {
+            oldAccount.setPassword(accountDto.getPassword());
             changedList.add("PASSWORD");
         }
-        if (!(accountCreateDto.getRole().equals(oldAccount.getRole()))) {
+        if (!(accountDto.getRole().equals(oldAccount.getRole()))) {
             if (Arrays.stream(Role.values()).anyMatch((role) ->
-                    role.equals(accountCreateDto.getRole()))) {
-                oldAccount.setRole(accountCreateDto.getRole());
+                    role.equals(accountDto.getRole()))) {
+                oldAccount.setRole(accountDto.getRole());
                 changedList.add("ROLE");
             } else return new ResponseEntity<>("INVALID ROLE GIVEN", HttpStatus.FORBIDDEN);
         }

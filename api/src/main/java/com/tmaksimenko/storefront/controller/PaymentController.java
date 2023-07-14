@@ -1,14 +1,15 @@
 package com.tmaksimenko.storefront.controller;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
 @RequestMapping("/payment")
 public class PaymentController {
-    @GetMapping("/process")
-    public String paymentPage () {
-        return "payment_page";
-    }
+   /* @GetMapping("/process")
+    public ResponseEntity<String>
+
+    }*/
+
+
 }

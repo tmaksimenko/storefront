@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Data
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @MappedSuperclass
 public class BaseEntity {
@@ -18,6 +18,6 @@ public class BaseEntity {
     Long id;
 
     @Embedded
-    Audit audit = new Audit ();
+    Audit audit;
 
 }
