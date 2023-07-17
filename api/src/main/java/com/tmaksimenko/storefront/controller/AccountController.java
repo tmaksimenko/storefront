@@ -5,12 +5,20 @@ import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.service.account.AccountService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -28,6 +36,25 @@ public class AccountController {
     final AccountService accountService;
     final PasswordEncoder passwordEncoder;
 
+
+    @Operation(
+            summary = "Gets all users(Admin only)",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Found the users",
+                            content =
+                            @Content(
+                                    mediaType = "application/json",
+                                    array = @ArraySchema(schema = @Schema(implementation =AccountDto.class))))
+            },parameters = {
+            @Parameter(
+                    in = ParameterIn.HEADER,
+                    name = "X_AUTH_TOKEN",
+                    required = true,
+                    description = "JWT Token, can be generated in auth controller /auth")
+    })
+    @PreAuthorize(value = "hasRole('ADMIN')")
     @GetMapping("/all")
     public ResponseEntity<List<AccountDto>> viewAll() {
         List<Account> accounts = accountService.findAll();
