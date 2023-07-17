@@ -1,6 +1,6 @@
 package com.tmaksimenko.storefront.controller;
 
-import com.tmaksimenko.storefront.dto.AccountDto;
+import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
 import com.tmaksimenko.storefront.model.Order;

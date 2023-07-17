@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.model.OrderProduct;
+package com.tmaksimenko.storefront.model.orderProduct;
 
 import com.tmaksimenko.storefront.dto.OrderProductDto;
 import com.tmaksimenko.storefront.model.Order;

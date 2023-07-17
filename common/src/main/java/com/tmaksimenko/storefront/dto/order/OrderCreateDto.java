@@ -1,6 +1,6 @@
 package com.tmaksimenko.storefront.dto.order;
 
-import com.tmaksimenko.storefront.dto.product.ProductAdditionDto;
+import com.tmaksimenko.storefront.dto.product.ProductCreateDto;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -12,7 +12,7 @@ public class OrderCreateDto {
 
     String username;
 
-    List<ProductAdditionDto> productAdditionDtos;
+    List<ProductCreateDto> productCreateDtos;
 
 }
 

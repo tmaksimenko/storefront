@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.model.OrderProduct;
+package com.tmaksimenko.storefront.model.orderProduct;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

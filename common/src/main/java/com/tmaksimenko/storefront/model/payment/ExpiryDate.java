@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.model.Payment;
+package com.tmaksimenko.storefront.model.payment;
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;

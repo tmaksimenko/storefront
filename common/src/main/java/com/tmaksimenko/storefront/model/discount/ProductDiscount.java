@@ -1,6 +1,7 @@
-package com.tmaksimenko.storefront.model.Discount;
+package com.tmaksimenko.storefront.model.discount;
 
-import com.tmaksimenko.storefront.dto.DiscountDto;
+import com.tmaksimenko.storefront.dto.discount.DiscountDto;
+import com.tmaksimenko.storefront.enums.DiscountType;
 import com.tmaksimenko.storefront.model.Product;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -11,13 +12,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name = "discounts")
+@Table(name = "productdiscounts")
 @SuperBuilder
 @Data
 @NoArgsConstructor
-public class ProductDiscount extends BaseDiscount {
+public class ProductDiscount extends Discount {
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "discount_product",
             joinColumns = @JoinColumn(name = "discount_id"),
@@ -27,7 +28,7 @@ public class ProductDiscount extends BaseDiscount {
     @Override
     public DiscountDto toDto() {
         return super.toDto().toBuilder().products(
-                products.stream().map(Product::toDto).collect(Collectors.toSet())).build();
+                products.stream().map(Product::toDto).collect(Collectors.toSet())).type(DiscountType.PRODUCT).build();
     }
 
 }

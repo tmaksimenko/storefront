@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.dto;
+package com.tmaksimenko.storefront.dto.account;
 
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.model.Audit;

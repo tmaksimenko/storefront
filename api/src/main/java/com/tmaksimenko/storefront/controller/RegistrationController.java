@@ -1,8 +1,8 @@
 package com.tmaksimenko.storefront.controller;
 
 
-import com.tmaksimenko.storefront.dto.AccountCreateDto;
-import com.tmaksimenko.storefront.dto.AccountDto;
+import com.tmaksimenko.storefront.dto.account.AccountCreateDto;
+import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.model.Audit;
 import com.tmaksimenko.storefront.service.account.AccountService;

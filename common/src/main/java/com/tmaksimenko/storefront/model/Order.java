@@ -1,8 +1,8 @@
 package com.tmaksimenko.storefront.model;
 
 import com.tmaksimenko.storefront.dto.order.OrderDto;
-import com.tmaksimenko.storefront.model.OrderProduct.OrderProduct;
-import com.tmaksimenko.storefront.model.Payment.Payment;
+import com.tmaksimenko.storefront.model.orderProduct.OrderProduct;
+import com.tmaksimenko.storefront.model.payment.Payment;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

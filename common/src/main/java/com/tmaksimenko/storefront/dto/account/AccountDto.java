@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.dto;
+package com.tmaksimenko.storefront.dto.account;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tmaksimenko.storefront.dto.order.OrderDto;

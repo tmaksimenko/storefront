@@ -1,7 +1,7 @@
 package com.tmaksimenko.storefront.dto;
 
-import com.tmaksimenko.storefront.enums.Payment.PaymentProvider;
-import com.tmaksimenko.storefront.enums.Payment.PaymentStatus;
+import com.tmaksimenko.storefront.enums.payment.PaymentProvider;
+import com.tmaksimenko.storefront.enums.payment.PaymentStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

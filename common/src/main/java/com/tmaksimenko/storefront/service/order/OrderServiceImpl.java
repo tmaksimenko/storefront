@@ -44,7 +44,7 @@ public class OrderServiceImpl implements OrderService {
         order.setAccount(accountService.findByUsername(orderCreateDto.getUsername())
                 .orElseThrow(AccountNotFoundException::new));
 
-        orderCreateDto.getProductAdditionDtos().forEach(
+        orderCreateDto.getProductCreateDtos().forEach(
                 x -> order.addProduct(
                         productService.findById(x.getProductId())
                                 .orElseThrow(ProductNotFoundException::new),

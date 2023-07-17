@@ -6,7 +6,7 @@ import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
 import com.tmaksimenko.storefront.model.Order;
-import com.tmaksimenko.storefront.model.OrderProduct.OrderProduct;
+import com.tmaksimenko.storefront.model.orderProduct.OrderProduct;
 import com.tmaksimenko.storefront.service.order.OrderService;
 import com.tmaksimenko.storefront.service.product.ProductService;
 import lombok.AccessLevel;

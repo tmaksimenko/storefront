@@ -2,8 +2,7 @@ package com.tmaksimenko.storefront.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tmaksimenko.storefront.dto.product.ProductDto;
-import com.tmaksimenko.storefront.model.Discount.ProductDiscount;
-import com.tmaksimenko.storefront.model.OrderProduct.OrderProduct;
+import com.tmaksimenko.storefront.model.orderProduct.OrderProduct;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,12 +30,8 @@ public class Product {
     @JsonIgnore
     Set<OrderProduct> orderProducts = new HashSet<>();
 
-    @ManyToMany(mappedBy = "products")
-    Set<ProductDiscount> discounts;
-
     public ProductDto toDto(){
-        return new ProductDto(this.id, this.name, this.brand, this.price,
-                this.discounts.stream().map(ProductDiscount::toDto).toList());
+        return new ProductDto(this.id, this.name, this.brand, this.price);
     }
 
 }
