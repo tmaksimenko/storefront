@@ -1,18 +1,22 @@
 package com.tmaksimenko.storefront.model.payment;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tmaksimenko.storefront.dto.PaymentDto;
+import com.tmaksimenko.storefront.dto.PaymentGetDto;
 import com.tmaksimenko.storefront.enums.payment.PaymentProvider;
 import com.tmaksimenko.storefront.enums.payment.PaymentStatus;
-import com.tmaksimenko.storefront.model.BaseEntity;
-import com.tmaksimenko.storefront.model.Order;
-import jakarta.persistence.*;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-@Entity
-@Table(name = "payments")
+@Embeddable
+@SuperBuilder
+@NoArgsConstructor
 @Data
-public class Payment extends BaseEntity {
+public class Payment {
     @Enumerated(EnumType.STRING)
     PaymentStatus paymentStatus;
 
@@ -23,13 +27,8 @@ public class Payment extends BaseEntity {
     @Embedded
     PaymentInfo paymentInfo;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", referencedColumnName = "id")
-    Order order;
-
-    public PaymentDto toDto () {
-        return PaymentDto.builder()
-                .id(this.getId())
+    public PaymentGetDto toDto () {
+        return PaymentGetDto.builder()
                 .paymentStatus(this.paymentStatus)
                 .paymentProvider(this.paymentProvider)
                 .build();

@@ -1,9 +1,11 @@
 package com.tmaksimenko.storefront.service.account;
 
+import com.tmaksimenko.storefront.dto.account.AccountCreateDto;
 import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
+import com.tmaksimenko.storefront.model.Audit;
 import com.tmaksimenko.storefront.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,24 +55,25 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ResponseEntity<String> createAccount(AccountDto accountDto) {
-        if (!accountRepository.findByUsername(accountDto.getUsername()).isEmpty())
+    public ResponseEntity<String> createAccount(AccountCreateDto accountCreateDto, String createdBy) {
+        if (!accountRepository.findByUsername(accountCreateDto.getUsername()).isEmpty())
             return new ResponseEntity<>("ACCOUNT ALREADY EXISTS", HttpStatus.FORBIDDEN);
 
         if (Arrays.stream(Role.values()).noneMatch((role) ->
-                role.equals(accountDto.getRole())))
+                role.equals(accountCreateDto.getRole())))
             return new ResponseEntity<>("ACCOUNT NEEDS ROLE", HttpStatus.FORBIDDEN);
 
-        if (    accountDto.getUsername().isEmpty() ||
-                accountDto.getEmail().isEmpty() ||
-                accountDto.getPassword().isEmpty())
+        if (    accountCreateDto.getUsername().isEmpty() ||
+                accountCreateDto.getEmail().isEmpty() ||
+                accountCreateDto.getPassword().isEmpty())
             return new ResponseEntity<>("ACCOUNT NEEDS ALL FIELDS", HttpStatus.FORBIDDEN);
 
         accountRepository.save(Account.builder()
-                .username(accountDto.getUsername())
-                .email(accountDto.getEmail())
-                .password(accountDto.getPassword())
-                .role(accountDto.getRole())
+                .username(accountCreateDto.getUsername())
+                .email(accountCreateDto.getEmail())
+                .password(accountCreateDto.getPassword())
+                .role(accountCreateDto.getRole())
+                .audit(Audit.builder().createdOn(LocalDateTime.now()).createdBy(createdBy).build())
                 .build());
 
         return new ResponseEntity<>("SUCCESS", HttpStatus.CREATED);

@@ -10,6 +10,7 @@ import com.tmaksimenko.storefront.repository.GeneralDiscountRepository;
 import com.tmaksimenko.storefront.repository.ProductDiscountRepository;
 import com.tmaksimenko.storefront.service.discount.DiscountService;
 import com.tmaksimenko.storefront.service.product.ProductService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Tag(name = "Administrator Utilities")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @RestController
 @RequestMapping("/discounts")

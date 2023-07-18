@@ -9,8 +9,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class PaymentDto {
-    Long id;
+public class PaymentGetDto {
+
     PaymentStatus paymentStatus;
+
     PaymentProvider paymentProvider;
+
 }
