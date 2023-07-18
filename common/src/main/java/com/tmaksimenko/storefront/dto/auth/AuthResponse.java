@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.tokentest;
+package com.tmaksimenko.storefront.dto.auth;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -10,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuthResponse {
 
-    String userNameOrEmail;
+    String login;
     String token;
 
 }

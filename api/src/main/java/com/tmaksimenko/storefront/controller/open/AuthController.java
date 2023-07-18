@@ -1,9 +1,11 @@
-package com.tmaksimenko.storefront.tokentest;
+package com.tmaksimenko.storefront.controller.open;
 
+import com.tmaksimenko.storefront.dto.auth.AuthRequest;
+import com.tmaksimenko.storefront.dto.auth.AuthResponse;
+import com.tmaksimenko.storefront.auth.JwtUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,44 +17,31 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
-@Tag(name = "Authentication")
+@Tag(name = "Sign-in Portal")
 @RestController
 @RequestMapping("/auth")
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
+    final AuthenticationManager authenticationManager;
 
-    private final JwtTokenHelper tokenUtils;
+    final JwtUtils jwtUtils;
 
-    private final UserDetailsService userProvider;
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    final UserDetailsService accountDetailsService;
 
     @PostMapping
     public ResponseEntity<AuthResponse> loginUser(@RequestBody AuthRequest request) {
 
-        /*Check login and password*/
         Authentication authenticate = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmailOrLogin(),
-                        request.getPassword()
-                )
-        );
-
-        logger.info("Authenticate: {}", authenticate);
-
+                new UsernamePasswordAuthenticationToken(request.getLogin(), request.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authenticate);
 
-        /*Generate token with answer to user*/
         return ResponseEntity.ok(
-                AuthResponse
-                        .builder()
-                        .userNameOrEmail(request.getEmailOrLogin())
-                        .token(tokenUtils.generateToken(userProvider.loadUserByUsername(request.getEmailOrLogin())))
-                        .build()
-        );
+                AuthResponse.builder()
+                .login(request.getLogin())
+                .token(jwtUtils.generateToken(
+                                accountDetailsService.loadUserByUsername(request.getLogin())))
+                .build());
     }
 
 }

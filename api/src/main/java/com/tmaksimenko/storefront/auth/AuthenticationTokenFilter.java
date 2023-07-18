@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.tokentest;
+package com.tmaksimenko.storefront.auth;
 
 
 import jakarta.servlet.FilterChain;
@@ -21,20 +21,20 @@ import java.io.IOException;
 @Component
 public class AuthenticationTokenFilter extends OncePerRequestFilter {
 
-    private final JwtTokenHelper tokenUtils;
+    final JwtUtils jwtUtils;
 
-    private final UserDetailsService userDetailsService;
+    final UserDetailsService userDetailsService;
 
     @Override
     public void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
-        String authToken = request.getHeader("X_AUTH_TOKEN");
+        String authToken = request.getHeader("X-Auth-Token");
 
         if (authToken != null) {
-            String username = tokenUtils.getUsernameFromToken(authToken);
+            String username = jwtUtils.getUsernameFromToken(authToken);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                if (tokenUtils.validateToken(authToken, userDetails)) {
+                if (jwtUtils.validateToken(authToken, userDetails)) {
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

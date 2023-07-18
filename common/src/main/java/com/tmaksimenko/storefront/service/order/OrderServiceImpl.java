@@ -1,9 +1,11 @@
 package com.tmaksimenko.storefront.service.order;
 
-import com.tmaksimenko.storefront.dto.order.OrderCreateDto;
+import com.tmaksimenko.storefront.dto.order.OrderDto;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
+import com.tmaksimenko.storefront.model.Account;
+import com.tmaksimenko.storefront.model.Audit;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.repository.OrderRepository;
 import com.tmaksimenko.storefront.service.account.AccountService;
@@ -14,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,14 +40,15 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public ResponseEntity<String> createOrder(OrderCreateDto orderCreateDto) {
+    public ResponseEntity<String> createOrder (OrderDto orderDto) {
 
-        Order order = new Order();
+        Order order = Order.builder()
+                .audit(Audit.builder().createdOn(LocalDateTime.now()).createdBy(orderDto.getUsername()).build())
+                .account(accountService.findByUsername(orderDto.getUsername())
+                        .orElseThrow(AccountNotFoundException::new))
+                .payment(orderDto.getPaymentCreateDto().toPayment()).build();
 
-        order.setAccount(accountService.findByUsername(orderCreateDto.getUsername())
-                .orElseThrow(AccountNotFoundException::new));
-
-        orderCreateDto.getProductCreateDtos().forEach(
+        orderDto.getProductCreateDtos().forEach(
                 x -> order.addProduct(
                         productService.findById(x.getProductId())
                                 .orElseThrow(ProductNotFoundException::new),
@@ -60,6 +64,12 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.deleteById(id);
         orderRepository.flush();
         return new ResponseEntity<>("ORDER DELETED", HttpStatus.OK);
+    }
+
+    @Override
+    public List<Order> findByLogin(String login) {
+        Account account = accountService.findByLogin(login).orElseThrow(AccountNotFoundException::new);
+        return orderRepository.findByAccountId(account.getId());
     }
 
 }

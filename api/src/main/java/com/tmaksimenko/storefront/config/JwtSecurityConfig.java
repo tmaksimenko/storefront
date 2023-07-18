@@ -1,16 +1,17 @@
-package com.tmaksimenko.storefront.tokentest;
+package com.tmaksimenko.storefront.config;
 
-import lombok.Data;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@Data
+@Getter
 public class JwtSecurityConfig {
 
     @Value("${jwt.secret}")
-    private String secret;
+    String secret;
 
     @Value("${jwt.expiration}")
-    private Integer expiration;
+    Integer expiration;
+
 }

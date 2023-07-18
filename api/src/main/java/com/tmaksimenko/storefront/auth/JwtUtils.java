@@ -1,8 +1,11 @@
-package com.tmaksimenko.storefront.tokentest;
+package com.tmaksimenko.storefront.auth;
 
-import io.jsonwebtoken.*;
+import com.tmaksimenko.storefront.config.JwtSecurityConfig;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Header;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,14 +20,19 @@ import static io.jsonwebtoken.Claims.SUBJECT;
 import static java.util.Calendar.MILLISECOND;
 
 @Component
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class JwtTokenHelper {
+public class JwtUtils {
 
     public static final String CREATE_VALUE = "created", ROLES = "roles";
 
-    private final JwtSecurityConfig jwtSecurityConfig;
+    final JwtSecurityConfig jwtSecurityConfig;
 
-    private final SecretKey key = Keys.hmacShaKeyFor(jwtSecurityConfig.getSecret().getBytes(StandardCharsets.UTF_8));
+    final SecretKey key;
+
+    @Autowired
+    public JwtUtils(JwtSecurityConfig jwtSecurityConfig) {
+        this.jwtSecurityConfig = jwtSecurityConfig;
+        this.key = Keys.hmacShaKeyFor(jwtSecurityConfig.getSecret().getBytes(StandardCharsets.UTF_8));
+    }
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
@@ -58,7 +66,8 @@ public class JwtTokenHelper {
         Boolean isMatchingUser = username.equals(userDetails.getUsername());
         if (checkExpiry(token))
             throw new ExpiredJwtException(
-                    Jwts.parserBuilder().setSigningKey(this.key).build().parseClaimsJws(token).getHeader(),
+                    Jwts.parserBuilder().setSigningKey(this.key)
+                            .build().parseClaimsJws(token).getHeader(),
                     getTokenClaims(token),
                     String.format("JWT expired at %s", getExpiration(token)));
         else return isMatchingUser;

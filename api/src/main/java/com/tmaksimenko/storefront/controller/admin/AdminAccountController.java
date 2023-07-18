@@ -1,5 +1,6 @@
-package com.tmaksimenko.storefront.controller;
+package com.tmaksimenko.storefront.controller.admin;
 
+import com.tmaksimenko.storefront.dto.account.AccountCreateDto;
 import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
@@ -8,17 +9,13 @@ import com.tmaksimenko.storefront.service.account.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import lombok.AccessLevel;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,34 +24,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Tag(name = "Administrator Utilities")
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping("/admin/accounts")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class AccountController {
+public class AdminAccountController {
 
     final AccountService accountService;
     final PasswordEncoder passwordEncoder;
 
 
     @Operation(
-            summary = "Gets all users(Admin only)",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Found the users",
-                            content =
-                            @Content(
-                                    mediaType = "application/json",
-                                    array = @ArraySchema(schema = @Schema(implementation =AccountDto.class))))
-            },parameters = {
+            summary = "Views all accounts (admin only)",
+            parameters = {
             @Parameter(
                     in = ParameterIn.HEADER,
-                    name = "X_AUTH_TOKEN",
+                    name = "X-Auth-Token",
                     required = true,
                     description = "JWT Token, can be generated in auth controller /auth")
     })
-    @PreAuthorize(value = "hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
     public ResponseEntity<List<AccountDto>> viewAll() {
         List<Account> accounts = accountService.findAll();
@@ -62,12 +51,22 @@ public class AccountController {
                 x -> (AccountDto)(AccountDto.builder()
                         .username(x.getUsername())
                         .email(x.getEmail())
-                        .orderDtos(x.getOrders().stream().map(Order::toPlainDto).toList())
+                        .orderGetDtos(x.getOrders().stream().map(Order::toPlainDto).toList())
                         .build())
         ).toList();
         return new ResponseEntity<>(accountDtos, HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Views individual account (admin only)",
+            parameters = {
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-Auth-Token",
+                            required = true,
+                            description = "JWT Token, can be generated in auth controller /auth")
+            })
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/view")
     public ResponseEntity<AccountDto> viewAccountDetails(@RequestParam String usernameOrEmail) {
         Optional<Account> optionalAccount = accountService.findByUsername(usernameOrEmail);
@@ -84,24 +83,38 @@ public class AccountController {
                 .address(optionalAccount.get().getAddress())
                 .role(optionalAccount.get().getRole())
                 .audit(optionalAccount.get().getAudit())
-                .orderDtos(optionalAccount.get().getOrders().stream().map(Order::toPlainDto).toList())
+                .orderGetDtos(optionalAccount.get().getOrders().stream().map(Order::toPlainDto).toList())
                 .build();
 
         return new ResponseEntity<>(accountDto, HttpStatus.OK);
     }
 
-    @RequestMapping("")
-    public ResponseEntity<String> defaultResponse() {
-        return new ResponseEntity<>("This is a mock storefront built with Spring Boot!",
-                HttpStatus.OK);
-    }
-
+    @Operation(
+            summary = "Adds an account (admin only)",
+            parameters = {
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-Auth-Token",
+                            required = true,
+                            description = "JWT Token, can be generated in auth controller /auth")
+            })
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/add")
-    public ResponseEntity<String> addAccount(@RequestBody AccountDto accountDto) {
-        accountDto.setPassword(passwordEncoder.encode(accountDto.getPassword()));
-        return accountService.createAccount(accountDto);
+    public ResponseEntity<String> addAccount(@RequestBody AccountCreateDto accountCreateDto) {
+        accountCreateDto.setPassword(passwordEncoder.encode(accountCreateDto.getPassword()));
+        return accountService.createAccount(accountCreateDto, SecurityContextHolder.getContext().getAuthentication().getName());
     }
 
+    @Operation(
+            summary = "Updates an account (admin only)",
+            parameters = {
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-Auth-Token",
+                            required = true,
+                            description = "JWT Token, can be generated in auth controller /auth")
+            })
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update")
     @SuppressWarnings("all")
     public ResponseEntity<String> updateAccount(@RequestBody AccountDto accountDto) {
@@ -116,6 +129,16 @@ public class AccountController {
         return new ResponseEntity<>("ACCOUNT NOT FOUND", HttpStatus.NOT_FOUND);
     }
 
+    @Operation(
+            summary = "Deletes an account (admin only)",
+            parameters = {
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-Auth-Token",
+                            required = true,
+                            description = "JWT Token, can be generated in auth controller /auth")
+            })
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteAccount(@RequestParam Map<String,String> params) {
 

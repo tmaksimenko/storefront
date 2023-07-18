@@ -17,6 +17,8 @@ public class AccountCreateDto {
 
     String password;
 
+    Role role;
+
     public AccountDto toFullDto (Role role, Audit audit) {
         return AccountDto.builder().username(username).email(email).password(password).role(role).audit(audit).build();
     }
