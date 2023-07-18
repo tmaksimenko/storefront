@@ -1,26 +1,32 @@
-package com.tmaksimenko.storefront.controller;
+package com.tmaksimenko.storefront.controller.user;
 
 import com.tmaksimenko.storefront.dto.order.OrderCreateDto;
-import com.tmaksimenko.storefront.dto.order.OrderDto;
+import com.tmaksimenko.storefront.dto.order.OrderGetDto;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
 import com.tmaksimenko.storefront.model.Order;
-import com.tmaksimenko.storefront.model.OrderProduct.OrderProduct;
+import com.tmaksimenko.storefront.model.orderProduct.OrderProduct;
 import com.tmaksimenko.storefront.service.order.OrderService;
 import com.tmaksimenko.storefront.service.product.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Tag(name = "User Operations")
 @RestController
 @RequestMapping("/orders")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -30,25 +36,44 @@ public class OrderController {
     final OrderService orderService;
     final ProductService productService;
 
-    @GetMapping("/all")
-    public ResponseEntity<List<OrderDto>> viewAll() {
-        List<Order> orders = orderService.findAll();
-        List<OrderDto> orderDtos = orders.stream().map(Order::toPlainDto).toList();
-        return new ResponseEntity<>(orderDtos, HttpStatus.OK);
+    @Operation(
+            summary = "Views all orders on your account",
+            parameters = {
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-Auth-Token",
+                            required = true,
+                            description = "JWT Token, can be generated in auth controller /auth")
+            })
+    @GetMapping("/viewaccountorders")
+    public ResponseEntity<List<OrderGetDto>> viewAll() {
+        List<Order> orders = orderService.findByLogin(SecurityContextHolder.getContext().getAuthentication().getName());
+        List<OrderGetDto> orderGetDtos = orders.stream().map(Order::toFullDto).toList();
+        return new ResponseEntity<>(orderGetDtos, HttpStatus.OK);
     }
 
     @GetMapping("/view")
-    public ResponseEntity<OrderDto> viewOrderDetails(Long id) {
+    public ResponseEntity<OrderGetDto> viewOrderDetails(Long id) {
         Optional<Order> order = orderService.findById(id);
         if (order.isPresent())
             return new ResponseEntity<>(order.get().toFullDto(), HttpStatus.OK);
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException());
     }
 
+
+    @Operation(
+            summary = "Places an order",
+            parameters = {
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-Auth-Token",
+                            required = true,
+                            description = "JWT Token, can be generated in auth controller /auth")
+            })
     @PostMapping("/create")
     public ResponseEntity<String> createOrder(@RequestBody OrderCreateDto orderCreateDto) {
         try {
-            return orderService.createOrder(orderCreateDto);
+            return orderService.createOrder(orderCreateDto.toOrderDto(SecurityContextHolder.getContext().getAuthentication().getName()));
             } catch (AccountNotFoundException e) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", e);
             } catch (ProductNotFoundException e) {

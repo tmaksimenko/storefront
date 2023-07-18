@@ -1,8 +1,7 @@
-package com.tmaksimenko.storefront.service;
+package com.tmaksimenko.storefront.service.account;
 
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
-import com.tmaksimenko.storefront.service.account.AccountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,9 +21,9 @@ public class UserDetailsServiceImplementation implements UserDetailsService {
     final AccountService accountService;
 
     @Override
-    public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername (String username) throws UsernameNotFoundException {
 
-        Optional<Account> searchResult = accountService.findByLogin(login);
+        Optional<Account> searchResult = accountService.findByLogin(username);
 
         if (searchResult.isPresent()) {
             Account account = searchResult.get();

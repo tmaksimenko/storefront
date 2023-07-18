@@ -4,12 +4,12 @@ import lombok.*;
 
 @Getter
 @AllArgsConstructor
-public class ProductAdditionDto {
+public class ProductCreateDto {
     Long productId;
     int quantity;
 
     @SuppressWarnings("unused")
-    public ProductAdditionDto (Long productId) {
+    public ProductCreateDto(Long productId) {
         this.productId = productId;
         this.quantity = 1;
     }

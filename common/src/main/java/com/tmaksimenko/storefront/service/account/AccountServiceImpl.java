@@ -1,9 +1,11 @@
 package com.tmaksimenko.storefront.service.account;
 
-import com.tmaksimenko.storefront.dto.AccountCreateDto;
+import com.tmaksimenko.storefront.dto.account.AccountCreateDto;
+import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
+import com.tmaksimenko.storefront.model.Audit;
 import com.tmaksimenko.storefront.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,7 +55,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ResponseEntity<String> createAccount(AccountCreateDto accountCreateDto) {
+    public ResponseEntity<String> createAccount(AccountCreateDto accountCreateDto, String createdBy) {
         if (!accountRepository.findByUsername(accountCreateDto.getUsername()).isEmpty())
             return new ResponseEntity<>("ACCOUNT ALREADY EXISTS", HttpStatus.FORBIDDEN);
 
@@ -70,31 +73,32 @@ public class AccountServiceImpl implements AccountService {
                 .email(accountCreateDto.getEmail())
                 .password(accountCreateDto.getPassword())
                 .role(accountCreateDto.getRole())
+                .audit(Audit.builder().createdOn(LocalDateTime.now()).createdBy(createdBy).build())
                 .build());
 
         return new ResponseEntity<>("SUCCESS", HttpStatus.CREATED);
     }
 
     @Override
-    public ResponseEntity<String> updateAccount(Account oldAccount, AccountCreateDto accountCreateDto) {
+    public ResponseEntity<String> updateAccount(Account oldAccount, AccountDto accountDto) {
         List<String> changedList = new ArrayList<>();
 
-        if (!StringUtils.isEmpty(accountCreateDto.getUsername()))  {
-            oldAccount.setUsername(accountCreateDto.getUsername());
+        if (!StringUtils.isEmpty(accountDto.getUsername()))  {
+            oldAccount.setUsername(accountDto.getUsername());
             changedList.add("USERNAME");
         }
-        if (!StringUtils.isEmpty(accountCreateDto.getEmail())) {
-            oldAccount.setEmail(accountCreateDto.getEmail());
+        if (!StringUtils.isEmpty(accountDto.getEmail())) {
+            oldAccount.setEmail(accountDto.getEmail());
             changedList.add("EMAIL");
         }
-        if (!StringUtils.isEmpty(accountCreateDto.getPassword())) {
-            oldAccount.setPassword(accountCreateDto.getPassword());
+        if (!StringUtils.isEmpty(accountDto.getPassword())) {
+            oldAccount.setPassword(accountDto.getPassword());
             changedList.add("PASSWORD");
         }
-        if (!(accountCreateDto.getRole().equals(oldAccount.getRole()))) {
+        if (!(accountDto.getRole().equals(oldAccount.getRole()))) {
             if (Arrays.stream(Role.values()).anyMatch((role) ->
-                    role.equals(accountCreateDto.getRole()))) {
-                oldAccount.setRole(accountCreateDto.getRole());
+                    role.equals(accountDto.getRole()))) {
+                oldAccount.setRole(accountDto.getRole());
                 changedList.add("ROLE");
             } else return new ResponseEntity<>("INVALID ROLE GIVEN", HttpStatus.FORBIDDEN);
         }
