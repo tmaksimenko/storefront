@@ -7,7 +7,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -25,12 +24,15 @@ public class Account extends BaseEntity {
     String password;
 
     @Enumerated(EnumType.STRING)
-    Role role = Role.ROLE_USER;
+    Role role;
 
     @Embedded
     Address address;
 
+    @Embedded
+    Cart cart;
+
     @OneToMany(mappedBy = "account")
-    Set<Order> orders = new HashSet<>();
+    Set<Order> orders;
 
 }

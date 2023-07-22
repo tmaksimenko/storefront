@@ -1,8 +1,7 @@
 package com.tmaksimenko.storefront.controller.admin;
+/*
 
-import com.tmaksimenko.storefront.dto.order.OrderCreateDto;
 import com.tmaksimenko.storefront.dto.order.OrderGetDto;
-import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
 import com.tmaksimenko.storefront.model.Order;
@@ -18,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -50,8 +48,9 @@ public class AdminOrderController {
     }
 
 
-    @Operation(
-            summary = "Places an order",
+    */
+/*@Operation(
+            summary = "Places an order (admin only)",
             parameters = {
                     @Parameter(
                             in = ParameterIn.HEADER,
@@ -61,16 +60,27 @@ public class AdminOrderController {
             })
     @PreAuthorize("hasRole('ADMIN')")// or (#orderCreateDto.username == authentication.name)")
     @PostMapping("/create")
-    public ResponseEntity<String> createOrder(@RequestBody OrderCreateDto orderCreateDto) {
+    public ResponseEntity<String> createOrder(@RequestParam String username, @RequestBody OrderCreateDto orderCreateDto) {
         try {
-            return orderService.createOrder(orderCreateDto.toOrderDto(SecurityContextHolder.getContext().getAuthentication().getName()));
+            return orderService.createOrder(orderCreateDto.toOrderDto(username));
             } catch (AccountNotFoundException e) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", e);
             } catch (ProductNotFoundException e) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "PRODUCT NOT FOUND", e);
         }
     }
+*//*
 
+    @Operation(
+            summary = "Updates an order (admin only)",
+            parameters = {
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-Auth-Token",
+                            required = true,
+                            description = "JWT Token, can be generated in auth controller /auth")
+            })
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update")
     public ResponseEntity<String> updateOrder(@RequestParam Long id, @RequestBody Map<String, Integer> params) {
         Optional<Order> optionalOrder = orderService.findById(id);
@@ -120,6 +130,16 @@ public class AdminOrderController {
                 updatedProductIds, addedProductIds, notFoundProductIds), HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "Deletes an order (admin only)",
+            parameters = {
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-Auth-Token",
+                            required = true,
+                            description = "JWT Token, can be generated in auth controller /auth")
+            })
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete")
     public ResponseEntity<String> removeOrder(@RequestParam Long id) {
         try {
@@ -130,3 +150,4 @@ public class AdminOrderController {
     }
 
 }
+*/

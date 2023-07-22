@@ -1,26 +1,28 @@
 package com.tmaksimenko.storefront.dto.account;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.model.Audit;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
 
+import java.time.LocalDateTime;
+
 @Data
 @SuperBuilder
-@AllArgsConstructor
-public class AccountCreateDto {
-
-    String username;
-
-    String email;
-
-    String password;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class AccountCreateDto extends AccountDto {
 
     Role role;
 
-    public AccountDto toFullDto (Role role, Audit audit) {
-        return AccountDto.builder().username(username).email(email).password(password).role(role).audit(audit).build();
+    public AccountFullDto toFullDto (String createdBy) {
+        return AccountFullDto.builder()
+                .username(this.getUsername())
+                .email(this.getEmail())
+                .password(this.getPassword())
+                .role(role)
+                .audit(Audit.builder().createdOn(LocalDateTime.now()).createdBy(createdBy).build())
+                .build();
     }
 
 }

@@ -1,7 +1,7 @@
 package com.tmaksimenko.storefront.controller.admin;
 
 import com.tmaksimenko.storefront.dto.account.AccountCreateDto;
-import com.tmaksimenko.storefront.dto.account.AccountDto;
+import com.tmaksimenko.storefront.dto.account.AccountFullDto;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
 import com.tmaksimenko.storefront.model.Order;
@@ -33,7 +33,6 @@ public class AdminAccountController {
     final AccountService accountService;
     final PasswordEncoder passwordEncoder;
 
-
     @Operation(
             summary = "Views all accounts (admin only)",
             parameters = {
@@ -45,16 +44,16 @@ public class AdminAccountController {
     })
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
-    public ResponseEntity<List<AccountDto>> viewAll() {
+    public ResponseEntity<List<AccountFullDto>> viewAll() {
         List<Account> accounts = accountService.findAll();
-        List<AccountDto> accountDtos  = accounts.stream().map(
-                x -> (AccountDto)(AccountDto.builder()
+        List<AccountFullDto> accountFullDtos = accounts.stream().map(
+                x -> (AccountFullDto)(AccountFullDto.builder()
                         .username(x.getUsername())
                         .email(x.getEmail())
                         .orderGetDtos(x.getOrders().stream().map(Order::toPlainDto).toList())
                         .build())
         ).toList();
-        return new ResponseEntity<>(accountDtos, HttpStatus.OK);
+        return new ResponseEntity<>(accountFullDtos, HttpStatus.OK);
     }
 
     @Operation(
@@ -68,7 +67,7 @@ public class AdminAccountController {
             })
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/view")
-    public ResponseEntity<AccountDto> viewAccountDetails(@RequestParam String usernameOrEmail) {
+    public ResponseEntity<AccountFullDto> viewAccountDetails(@RequestParam String usernameOrEmail) {
         Optional<Account> optionalAccount = accountService.findByUsername(usernameOrEmail);
 
         if (optionalAccount.isEmpty())
@@ -77,7 +76,7 @@ public class AdminAccountController {
         if (optionalAccount.isEmpty())
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
 
-        AccountDto accountDto = AccountDto.builder()
+        AccountFullDto accountFullDto = AccountFullDto.builder()
                 .username(optionalAccount.get().getUsername())
                 .email(optionalAccount.get().getEmail())
                 .address(optionalAccount.get().getAddress())
@@ -86,7 +85,7 @@ public class AdminAccountController {
                 .orderGetDtos(optionalAccount.get().getOrders().stream().map(Order::toPlainDto).toList())
                 .build();
 
-        return new ResponseEntity<>(accountDto, HttpStatus.OK);
+        return new ResponseEntity<>(accountFullDto, HttpStatus.OK);
     }
 
     @Operation(
@@ -102,7 +101,7 @@ public class AdminAccountController {
     @PostMapping("/add")
     public ResponseEntity<String> addAccount(@RequestBody AccountCreateDto accountCreateDto) {
         accountCreateDto.setPassword(passwordEncoder.encode(accountCreateDto.getPassword()));
-        return accountService.createAccount(accountCreateDto, SecurityContextHolder.getContext().getAuthentication().getName());
+        return accountService.createAccount(accountCreateDto.toFullDto(SecurityContextHolder.getContext().getAuthentication().getName()));
     }
 
     @Operation(
@@ -117,14 +116,14 @@ public class AdminAccountController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update")
     @SuppressWarnings("all")
-    public ResponseEntity<String> updateAccount(@RequestBody AccountDto accountDto) {
-        Optional<Account> oldAccount = accountService.findByUsername(accountDto.getUsername());
+    public ResponseEntity<String> updateAccount(@RequestBody AccountFullDto accountFullDto) {
+        Optional<Account> oldAccount = accountService.findByUsername(accountFullDto.getUsername());
 
         if (oldAccount.isEmpty())
-            oldAccount = accountService.findByEmail(accountDto.getEmail());
+            oldAccount = accountService.findByEmail(accountFullDto.getEmail());
 
         if (oldAccount.isPresent())
-            return accountService.updateAccount(oldAccount.get(), accountDto);
+            return accountService.updateAccount(oldAccount.get(), accountFullDto);
 
         return new ResponseEntity<>("ACCOUNT NOT FOUND", HttpStatus.NOT_FOUND);
     }

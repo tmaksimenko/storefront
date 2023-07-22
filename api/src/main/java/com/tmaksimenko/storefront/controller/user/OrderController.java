@@ -1,8 +1,6 @@
 package com.tmaksimenko.storefront.controller.user;
 
-import com.tmaksimenko.storefront.dto.order.OrderCreateDto;
 import com.tmaksimenko.storefront.dto.order.OrderGetDto;
-import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
 import com.tmaksimenko.storefront.model.Order;
@@ -13,9 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +26,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/orders")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderController {
 
     final OrderService orderService;
@@ -45,7 +40,7 @@ public class OrderController {
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth")
             })
-    @GetMapping("/viewaccountorders")
+    @GetMapping("/viewall")
     public ResponseEntity<List<OrderGetDto>> viewAll() {
         List<Order> orders = orderService.findByLogin(SecurityContextHolder.getContext().getAuthentication().getName());
         List<OrderGetDto> orderGetDtos = orders.stream().map(Order::toFullDto).toList();
@@ -61,26 +56,23 @@ public class OrderController {
     }
 
 
-    @Operation(
-            summary = "Places an order",
-            parameters = {
+    @Operation(summary = "Places an order from the cart", parameters =
                     @Parameter(
                             in = ParameterIn.HEADER,
                             name = "X-Auth-Token",
                             required = true,
-                            description = "JWT Token, can be generated in auth controller /auth")
-            })
-    @PostMapping("/create")
-    public ResponseEntity<String> createOrder(@RequestBody OrderCreateDto orderCreateDto) {
-        try {
-            return orderService.createOrder(orderCreateDto.toOrderDto(SecurityContextHolder.getContext().getAuthentication().getName()));
-            } catch (AccountNotFoundException e) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", e);
-            } catch (ProductNotFoundException e) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "PRODUCT NOT FOUND", e);
-        }
+                            description = "JWT Token, can be generated in auth controller /auth"))
+    @PostMapping("/submit")
+    public ResponseEntity<String> submitOrder () {
+        return orderService.cartToOrder();
     }
 
+    @Operation(summary = "Updates order items", parameters =
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-Auth-Token",
+                            required = true,
+                            description = "JWT Token, can be generated in auth controller /auth"))
     @PutMapping("/update")
     public ResponseEntity<String> updateOrder(@RequestParam Long id, @RequestBody Map<String, Integer> params) {
         Optional<Order> optionalOrder = orderService.findById(id);
@@ -130,6 +122,12 @@ public class OrderController {
                 updatedProductIds, addedProductIds, notFoundProductIds), HttpStatus.OK);
     }
 
+    @Operation(summary = "Deletes order", parameters =
+    @Parameter(
+            in = ParameterIn.HEADER,
+            name = "X-Auth-Token",
+            required = true,
+            description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/delete")
     public ResponseEntity<String> removeOrder(@RequestParam Long id) {
         try {

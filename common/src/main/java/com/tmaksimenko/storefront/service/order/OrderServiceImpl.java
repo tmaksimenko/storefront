@@ -1,11 +1,13 @@
 package com.tmaksimenko.storefront.service.order;
 
-import com.tmaksimenko.storefront.dto.order.OrderDto;
+import com.tmaksimenko.storefront.dto.order.CartDto;
+import com.tmaksimenko.storefront.enums.payment.PaymentStatus;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
 import com.tmaksimenko.storefront.model.Audit;
+import com.tmaksimenko.storefront.model.Cart;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.repository.OrderRepository;
 import com.tmaksimenko.storefront.service.account.AccountService;
@@ -14,11 +16,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -40,15 +46,41 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public ResponseEntity<String> createOrder (OrderDto orderDto) {
+    public ResponseEntity<String> cartToOrder () {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<Account> optionalAccount = accountService.findByUsername(username);
+        if (optionalAccount.isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
+        if (isEmpty(optionalAccount.get().getCart()))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "CART IS EMPTY");
+
+        Cart cart = optionalAccount.get().getCart();
 
         Order order = Order.builder()
-                .audit(Audit.builder().createdOn(LocalDateTime.now()).createdBy(orderDto.getUsername()).build())
-                .account(accountService.findByUsername(orderDto.getUsername())
-                        .orElseThrow(AccountNotFoundException::new))
-                .payment(orderDto.getPaymentCreateDto().toPayment()).build();
+                .account(optionalAccount.get())
+                .audit(Audit.builder()
+                        .createdOn(LocalDateTime.now())
+                        .createdBy(username).build())
+                .payment(cart.getPayment()).build();
 
-        orderDto.getProductCreateDtos().forEach(
+        cart.getItems().forEach(
+                (key, value) -> order.addProduct(
+                        productService.findById(key).orElseThrow(ProductNotFoundException::new), value));
+
+        orderRepository.save(order);
+        return new ResponseEntity<>("ORDER CREATED", HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<String> createOrder (CartDto cartDto, String username) {
+
+        Order order = Order.builder()
+                .audit(Audit.builder().createdOn(LocalDateTime.now()).createdBy(username).build())
+                .account(accountService.findByUsername(username)
+                        .orElseThrow(AccountNotFoundException::new))
+                .payment(cartDto.getPaymentCreateDto().toPayment(PaymentStatus.PAID)).build();
+
+        cartDto.getCartItemDtos().forEach(
                 x -> order.addProduct(
                         productService.findById(x.getProductId())
                                 .orElseThrow(ProductNotFoundException::new),
@@ -62,7 +94,6 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public ResponseEntity<String> deleteOrder(Long id) throws OrderNotFoundException {
         orderRepository.deleteById(id);
-        orderRepository.flush();
         return new ResponseEntity<>("ORDER DELETED", HttpStatus.OK);
     }
 

@@ -17,9 +17,9 @@ public class PaymentCreateDto {
 
     PaymentProvider paymentProvider;
 
-    public Payment toPayment () {
+    public Payment toPayment (PaymentStatus paymentStatus) {
         return Payment.builder()
-                .paymentStatus(PaymentStatus.NOT_PAID)
+                .paymentStatus(paymentStatus)
                 .paymentInfo(paymentInfo)
                 .paymentProvider(paymentProvider).build();
     }

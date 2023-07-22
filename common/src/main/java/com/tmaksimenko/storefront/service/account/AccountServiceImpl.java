@@ -1,11 +1,9 @@
 package com.tmaksimenko.storefront.service.account;
 
-import com.tmaksimenko.storefront.dto.account.AccountCreateDto;
-import com.tmaksimenko.storefront.dto.account.AccountDto;
+import com.tmaksimenko.storefront.dto.account.AccountFullDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
-import com.tmaksimenko.storefront.model.Audit;
 import com.tmaksimenko.storefront.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -14,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -55,50 +52,45 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ResponseEntity<String> createAccount(AccountCreateDto accountCreateDto, String createdBy) {
-        if (!accountRepository.findByUsername(accountCreateDto.getUsername()).isEmpty())
+    public ResponseEntity<String> createAccount(AccountFullDto accountFullDto) {
+        if (!accountRepository.findByUsername(accountFullDto.getUsername()).isEmpty())
             return new ResponseEntity<>("ACCOUNT ALREADY EXISTS", HttpStatus.FORBIDDEN);
 
         if (Arrays.stream(Role.values()).noneMatch((role) ->
-                role.equals(accountCreateDto.getRole())))
-            return new ResponseEntity<>("ACCOUNT NEEDS ROLE", HttpStatus.FORBIDDEN);
-
-        if (    accountCreateDto.getUsername().isEmpty() ||
-                accountCreateDto.getEmail().isEmpty() ||
-                accountCreateDto.getPassword().isEmpty())
-            return new ResponseEntity<>("ACCOUNT NEEDS ALL FIELDS", HttpStatus.FORBIDDEN);
+                role.equals(accountFullDto.getRole())))
+            return new ResponseEntity<>("ROLE NOT FOUND", HttpStatus.FORBIDDEN);
 
         accountRepository.save(Account.builder()
-                .username(accountCreateDto.getUsername())
-                .email(accountCreateDto.getEmail())
-                .password(accountCreateDto.getPassword())
-                .role(accountCreateDto.getRole())
-                .audit(Audit.builder().createdOn(LocalDateTime.now()).createdBy(createdBy).build())
+                .username(accountFullDto.getUsername())
+                .email(accountFullDto.getEmail())
+                .password(accountFullDto.getPassword())
+                .role(accountFullDto.getRole())
+                .audit(accountFullDto.getAudit())
                 .build());
 
         return new ResponseEntity<>("SUCCESS", HttpStatus.CREATED);
     }
 
     @Override
-    public ResponseEntity<String> updateAccount(Account oldAccount, AccountDto accountDto) {
+    public ResponseEntity<String> updateAccount(Account oldAccount, AccountFullDto accountFullDto) {
         List<String> changedList = new ArrayList<>();
 
-        if (!StringUtils.isEmpty(accountDto.getUsername()))  {
-            oldAccount.setUsername(accountDto.getUsername());
+        if (!StringUtils.isEmpty(accountFullDto.getUsername()))  {
+            oldAccount.setUsername(accountFullDto.getUsername());
             changedList.add("USERNAME");
         }
-        if (!StringUtils.isEmpty(accountDto.getEmail())) {
-            oldAccount.setEmail(accountDto.getEmail());
+        if (!StringUtils.isEmpty(accountFullDto.getEmail())) {
+            oldAccount.setEmail(accountFullDto.getEmail());
             changedList.add("EMAIL");
         }
-        if (!StringUtils.isEmpty(accountDto.getPassword())) {
-            oldAccount.setPassword(accountDto.getPassword());
+        if (!StringUtils.isEmpty(accountFullDto.getPassword())) {
+            oldAccount.setPassword(accountFullDto.getPassword());
             changedList.add("PASSWORD");
         }
-        if (!(accountDto.getRole().equals(oldAccount.getRole()))) {
+        if (!(accountFullDto.getRole().equals(oldAccount.getRole()))) {
             if (Arrays.stream(Role.values()).anyMatch((role) ->
-                    role.equals(accountDto.getRole()))) {
-                oldAccount.setRole(accountDto.getRole());
+                    role.equals(accountFullDto.getRole()))) {
+                oldAccount.setRole(accountFullDto.getRole());
                 changedList.add("ROLE");
             } else return new ResponseEntity<>("INVALID ROLE GIVEN", HttpStatus.FORBIDDEN);
         }

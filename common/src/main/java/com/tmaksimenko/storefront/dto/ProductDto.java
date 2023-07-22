@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.dto.product;
+package com.tmaksimenko.storefront.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

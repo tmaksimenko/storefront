@@ -1,6 +1,6 @@
 package com.tmaksimenko.storefront.service.order;
 
-import com.tmaksimenko.storefront.dto.order.OrderDto;
+import com.tmaksimenko.storefront.dto.order.CartDto;
 import com.tmaksimenko.storefront.model.Order;
 import org.springframework.http.ResponseEntity;
 
@@ -12,7 +12,11 @@ public interface OrderService {
 
     Optional<Order> findById(Long id);
 
-    ResponseEntity<String> createOrder(OrderDto orderDto);
+    ResponseEntity<String> cartToOrder ();
+
+    @SuppressWarnings("unused")
+    ResponseEntity<String> createOrder(CartDto cartDto, String username);
+
 
     ResponseEntity<String> deleteOrder(Long id);
 

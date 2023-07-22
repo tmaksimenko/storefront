@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public class Discount extends BaseEntity {
 
-    double percent;
+    Double percent;
 
     public DiscountDto toDto () {
         return DiscountDto.builder().percent(percent).build();
