@@ -5,18 +5,21 @@ import com.tmaksimenko.storefront.dto.ProductDto;
 import com.tmaksimenko.storefront.model.discount.ProductDiscount;
 import com.tmaksimenko.storefront.model.orderProduct.OrderProduct;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Data
 @Table(name="products")
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode(exclude = "orderProducts")
 public class Product {
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "default_seq")
     long id;
 
     String name;
