@@ -31,7 +31,7 @@ public class ProductController {
     final AccountService accountService;
     final ProductService productService;
 
-    @Operation(summary = "Fetches list of all products")
+    @Operation(summary = "Fetch all products")
     @GetMapping("/all")
     public ResponseEntity<List<ProductDto>> findAll() {
         List<Product> products = productService.findAll();
@@ -39,13 +39,13 @@ public class ProductController {
         return new ResponseEntity<>(productDtos, HttpStatus.OK);
     }
 
-    @Operation(summary = "Fetches individual product")
+    @Operation(summary = "Fetch individual product")
     @GetMapping("/view")
     public ResponseEntity<Product> viewProduct (@RequestParam Long id) {
         return ResponseEntity.of(productService.findById(id));
     }
 
-    @Operation(summary = "Views the cart")
+    @Operation(summary = "View cart")
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/cart")
     public ResponseEntity<Cart> viewCart () {
@@ -55,7 +55,7 @@ public class ProductController {
                 HttpStatus.OK);
     }
 
-    @Operation(summary = "Creates a new cart or replaces the previous cart")
+    @Operation(summary = "Create a new cart (replaces previous)")
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/cart")
     public ResponseEntity<String> createCart (@RequestBody CartDto cartDto) {
@@ -67,7 +67,7 @@ public class ProductController {
         return new ResponseEntity<>("CART CREATED", HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Deletes the current cart")
+    @Operation(summary = "Delete the cart")
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/cart")
     public ResponseEntity<String> deleteCart () {

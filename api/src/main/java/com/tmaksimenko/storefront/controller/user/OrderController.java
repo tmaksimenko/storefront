@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 @Tag(name = "User Operations")
 @RestController
 @RequestMapping("/orders")
+@EnableCaching
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class OrderController {
 
@@ -47,16 +50,25 @@ public class OrderController {
         return new ResponseEntity<>(orderGetDtos, HttpStatus.OK);
     }
 
+    @Operation(
+            summary = "View a specific order from your account",
+            parameters = {
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-Auth-Token",
+                            required = true,
+                            description = "JWT Token, can be generated in auth controller /auth")
+            })
+    @Cacheable("orders")
     @GetMapping("/view")
-    public ResponseEntity<OrderGetDto> viewOrderDetails(Long id) {
+    public ResponseEntity<OrderGetDto> viewOrderDetails(@RequestParam Long id) {
         Optional<Order> order = orderService.findById(id);
         if (order.isPresent())
             return new ResponseEntity<>(order.get().toFullDto(), HttpStatus.OK);
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException());
     }
 
-
-    @Operation(summary = "Places an order from the cart", parameters =
+    @Operation(summary = "Place an order from the cart", parameters =
                     @Parameter(
                             in = ParameterIn.HEADER,
                             name = "X-Auth-Token",
@@ -67,7 +79,7 @@ public class OrderController {
         return orderService.cartToOrder();
     }
 
-    @Operation(summary = "Updates order items", parameters =
+    @Operation(summary = "Update order items", parameters =
                     @Parameter(
                             in = ParameterIn.HEADER,
                             name = "X-Auth-Token",
@@ -122,7 +134,7 @@ public class OrderController {
                 updatedProductIds, addedProductIds, notFoundProductIds), HttpStatus.OK);
     }
 
-    @Operation(summary = "Deletes order", parameters =
+    @Operation(summary = "Delete order", parameters =
     @Parameter(
             in = ParameterIn.HEADER,
             name = "X-Auth-Token",

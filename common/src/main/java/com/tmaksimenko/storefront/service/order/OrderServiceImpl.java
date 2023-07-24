@@ -14,8 +14,13 @@ import com.tmaksimenko.storefront.service.account.AccountService;
 import com.tmaksimenko.storefront.service.product.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,6 +32,8 @@ import java.util.Optional;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 
 @Service
+@EnableCaching
+@CacheConfig(cacheNames = "orders")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class OrderServiceImpl implements OrderService {
 
@@ -40,6 +47,7 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findAll();
     }
 
+    @Cacheable
     @Override
     public Optional<Order> findById(Long id) {
         return orderRepository.findById(id);
@@ -97,10 +105,16 @@ public class OrderServiceImpl implements OrderService {
         return new ResponseEntity<>("ORDER DELETED", HttpStatus.OK);
     }
 
+    @Cacheable
     @Override
     public List<Order> findByLogin(String login) {
         Account account = accountService.findByLogin(login).orElseThrow(AccountNotFoundException::new);
         return orderRepository.findByAccountId(account.getId());
+    }
+
+    @Scheduled(fixedRate = 1800000)
+    @CacheEvict(allEntries = true)
+    public void emptyCache () {
     }
 
 }

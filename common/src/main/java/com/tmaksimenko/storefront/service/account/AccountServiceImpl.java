@@ -6,10 +6,12 @@ import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Account;
 import com.tmaksimenko.storefront.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,6 +20,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@EnableCaching
+@CacheConfig(cacheNames = "accounts")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class AccountServiceImpl implements AccountService {
 
@@ -28,17 +32,20 @@ public class AccountServiceImpl implements AccountService {
         return accountRepository.findAll();
     }
 
+    @Cacheable
     @Override
     public Optional<Account> findById(Long id) {
         return accountRepository.findById(id);
     }
 
+    @Cacheable
     @Override
     public Optional<Account> findByUsername(String username) {
         return Optional.ofNullable(accountRepository.findByUsername(username).isEmpty() ?
                 null : accountRepository.findByUsername(username).get(0));
     }
 
+    @Cacheable
     @Override
     public Optional<Account> findByEmail(String email) {
         return Optional.ofNullable(accountRepository.findByEmail(email).isEmpty() ?
@@ -71,21 +78,26 @@ public class AccountServiceImpl implements AccountService {
         return new ResponseEntity<>("SUCCESS", HttpStatus.CREATED);
     }
 
+    @CachePut
     @Override
     public ResponseEntity<String> updateAccount(Account oldAccount, AccountFullDto accountFullDto) {
         List<String> changedList = new ArrayList<>();
 
-        if (!StringUtils.isEmpty(accountFullDto.getUsername()))  {
+        if (!ObjectUtils.isEmpty(accountFullDto.getUsername()))  {
             oldAccount.setUsername(accountFullDto.getUsername());
             changedList.add("USERNAME");
         }
-        if (!StringUtils.isEmpty(accountFullDto.getEmail())) {
+        if (!ObjectUtils.isEmpty(accountFullDto.getEmail())) {
             oldAccount.setEmail(accountFullDto.getEmail());
             changedList.add("EMAIL");
         }
-        if (!StringUtils.isEmpty(accountFullDto.getPassword())) {
+        if (!ObjectUtils.isEmpty(accountFullDto.getPassword())) {
             oldAccount.setPassword(accountFullDto.getPassword());
             changedList.add("PASSWORD");
+        }
+        if (!ObjectUtils.isEmpty(accountFullDto.getAddress())) {
+            oldAccount.setAddress(accountFullDto.getAddress());
+            changedList.add("ADDRESS");
         }
         if (!(accountFullDto.getRole().equals(oldAccount.getRole()))) {
             if (Arrays.stream(Role.values()).anyMatch((role) ->
@@ -100,6 +112,7 @@ public class AccountServiceImpl implements AccountService {
         return new ResponseEntity<>(String.format("CHANGED FIELDS: %s", changedList), HttpStatus.OK);
     }
 
+    @CacheEvict(key = "#id")
     @Override
     public ResponseEntity<String> deleteAccount(Long id) {
         if (accountRepository.findById(id).isEmpty())
@@ -108,6 +121,7 @@ public class AccountServiceImpl implements AccountService {
         return new ResponseEntity<>("ACCOUNT DELETED", HttpStatus.OK);
     }
 
+    @CacheEvict(key = "#login")
     @Override
     public ResponseEntity<String> deleteAccount(String login) {
         Optional<Account> optionalAccount = this.findByUsername(login);
@@ -119,6 +133,11 @@ public class AccountServiceImpl implements AccountService {
 
         accountRepository.deleteById(optionalAccount.get().getId());
         return new ResponseEntity<>("ACCOUNT DELETED", HttpStatus.OK);
+    }
+
+    @Scheduled(fixedRate = 1800000)
+    @CacheEvict(allEntries = true)
+    public void emptyCache () {
     }
 
 }

@@ -16,11 +16,5 @@ public class CartDto {
 
     PaymentCreateDto paymentCreateDto;
 
-    /*public CartDto merge (CartDto cartDto) {
-        List<CartItemDto> mergedCartItemDtos = this.cartItemDtos;
-        mergedCartItemDtos.addAll(cartDto.getCartItemDtos());
-        return new CartDto(mergedCartItemDtos);
-    }*/
-
 }
 
