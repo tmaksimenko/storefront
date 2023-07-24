@@ -21,7 +21,7 @@ import java.util.List;
 
 @Tag(name = "Administrator Utilities")
 @RestController
-@RequestMapping("/products")
+@RequestMapping("/admin/products")
 @PreAuthorize("hasRole('ADMIN')")
 @EnableCaching
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))

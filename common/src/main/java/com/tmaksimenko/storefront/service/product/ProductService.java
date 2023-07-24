@@ -14,6 +14,8 @@ public interface ProductService {
 
     Optional<Product> findById(Long id);
 
+    Cart createCart (CartDto cartDto, String username);
+
     Cart createCart (CartDto cartDto);
 
     ResponseEntity<String> createProduct (ProductCreateDto productCreateDto);
