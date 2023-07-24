@@ -4,6 +4,7 @@ import com.tmaksimenko.storefront.dto.order.OrderGetDto;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
+import com.tmaksimenko.storefront.model.Account;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.model.orderProduct.OrderProduct;
 import com.tmaksimenko.storefront.service.account.AccountService;
@@ -62,10 +63,21 @@ public class OrderController {
     @Cacheable("orders")
     @GetMapping("/view")
     public ResponseEntity<OrderGetDto> viewOrderDetails(@RequestParam Long id) {
-        Optional<Order> order = orderService.findById(id);
-        if (order.isPresent())
-            return new ResponseEntity<>(order.get().toFullDto(), HttpStatus.OK);
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException());
+        Optional<Order> optionalOrder = orderService.findById(id);
+
+        if (optionalOrder.isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException());
+
+        Optional<Account> optionalAccount = accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+
+        if (optionalAccount.isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
+
+        if (!optionalAccount.get()
+                .getOrders().contains(optionalOrder.get()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ORDER NOT YOURS");
+
+        return new ResponseEntity<>(optionalOrder.get().toFullDto(), HttpStatus.OK);
     }
 
     @Operation(summary = "Place an order from the cart", parameters =

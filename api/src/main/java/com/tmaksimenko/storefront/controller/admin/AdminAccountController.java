@@ -21,11 +21,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Tag(name = "Administrator Utilities")
 @RestController
+@PreAuthorize("hasRole('ADMIN')")
 @RequestMapping("/admin/accounts")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class AdminAccountController {
@@ -33,16 +33,12 @@ public class AdminAccountController {
     final AccountService accountService;
     final PasswordEncoder passwordEncoder;
 
-    @Operation(
-            summary = "Views all accounts (admin only)",
-            parameters = {
+    @Operation(summary = "View all accounts", parameters =
             @Parameter(
                     in = ParameterIn.HEADER,
                     name = "X-Auth-Token",
                     required = true,
-                    description = "JWT Token, can be generated in auth controller /auth")
-    })
-    @PreAuthorize("hasRole('ADMIN')")
+                    description = "JWT Token, can be generated in auth controller /auth"))
     @GetMapping("/all")
     public ResponseEntity<List<AccountFullDto>> viewAll() {
         List<Account> accounts = accountService.findAll();
@@ -56,22 +52,15 @@ public class AdminAccountController {
         return new ResponseEntity<>(accountFullDtos, HttpStatus.OK);
     }
 
-    @Operation(
-            summary = "Views individual account (admin only)",
-            parameters = {
+    @Operation(summary = "View individual account", parameters =
                     @Parameter(
                             in = ParameterIn.HEADER,
                             name = "X-Auth-Token",
                             required = true,
-                            description = "JWT Token, can be generated in auth controller /auth")
-            })
-    @PreAuthorize("hasRole('ADMIN')")
+                            description = "JWT Token, can be generated in auth controller /auth"))
     @GetMapping("/view")
-    public ResponseEntity<AccountFullDto> viewAccountDetails(@RequestParam String usernameOrEmail) {
-        Optional<Account> optionalAccount = accountService.findByUsername(usernameOrEmail);
-
-        if (optionalAccount.isEmpty())
-            optionalAccount = accountService.findByEmail(usernameOrEmail);
+    public ResponseEntity<AccountFullDto> viewAccountDetails(@RequestParam String login) {
+        Optional<Account> optionalAccount = accountService.findByLogin(login);
 
         if (optionalAccount.isEmpty())
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
@@ -82,37 +71,31 @@ public class AdminAccountController {
                 .address(optionalAccount.get().getAddress())
                 .role(optionalAccount.get().getRole())
                 .audit(optionalAccount.get().getAudit())
+                .cart(optionalAccount.get().getCart())
                 .orderGetDtos(optionalAccount.get().getOrders().stream().map(Order::toPlainDto).toList())
                 .build();
 
         return new ResponseEntity<>(accountFullDto, HttpStatus.OK);
     }
 
-    @Operation(
-            summary = "Adds an account (admin only)",
-            parameters = {
+    @Operation(summary = "Add an account", parameters =
                     @Parameter(
                             in = ParameterIn.HEADER,
                             name = "X-Auth-Token",
                             required = true,
-                            description = "JWT Token, can be generated in auth controller /auth")
-            })
-    @PreAuthorize("hasRole('ADMIN')")
+                            description = "JWT Token, can be generated in auth controller /auth"))
     @PostMapping("/add")
     public ResponseEntity<String> addAccount(@RequestBody AccountCreateDto accountCreateDto) {
         accountCreateDto.setPassword(passwordEncoder.encode(accountCreateDto.getPassword()));
         return accountService.createAccount(accountCreateDto.toFullDto(SecurityContextHolder.getContext().getAuthentication().getName()));
     }
 
-    @Operation(
-            summary = "Updates an account (admin only)",
-            parameters = {
+    @Operation(summary = "Update an account", parameters =
                     @Parameter(
                             in = ParameterIn.HEADER,
                             name = "X-Auth-Token",
                             required = true,
-                            description = "JWT Token, can be generated in auth controller /auth")
-            })
+                            description = "JWT Token, can be generated in auth controller /auth"))
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update")
     @SuppressWarnings("all")
@@ -128,30 +111,15 @@ public class AdminAccountController {
         return new ResponseEntity<>("ACCOUNT NOT FOUND", HttpStatus.NOT_FOUND);
     }
 
-    @Operation(
-            summary = "Deletes an account (admin only)",
-            parameters = {
+    @Operation(summary = "Delete an account", parameters =
                     @Parameter(
                             in = ParameterIn.HEADER,
                             name = "X-Auth-Token",
                             required = true,
-                            description = "JWT Token, can be generated in auth controller /auth")
-            })
-    @PreAuthorize("hasRole('ADMIN')")
+                            description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteAccount(@RequestParam Map<String,String> params) {
-
-        if (!params.containsKey("username"))
-            return new ResponseEntity<>("NO USERNAME GIVEN", HttpStatus.NOT_FOUND);
-
-        try {
-            return accountService
-                    .deleteAccount(
-                            accountService.findByUsername(params.get("username"))
-                            .orElseThrow(AccountNotFoundException::new).getId());
-        } catch (AccountNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", e);
-        }
+    public ResponseEntity<String> deleteAccount(@RequestParam String login) {
+        return accountService.deleteAccount(login);
     }
 
 }
