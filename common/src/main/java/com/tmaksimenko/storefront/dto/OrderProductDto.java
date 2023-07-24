@@ -1,5 +1,6 @@
 package com.tmaksimenko.storefront.dto;
 
+import com.tmaksimenko.storefront.dto.product.ProductDto;
 import lombok.Builder;
 import lombok.Getter;
 

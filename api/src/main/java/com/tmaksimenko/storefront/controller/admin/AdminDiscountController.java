@@ -4,7 +4,7 @@ import com.tmaksimenko.storefront.dto.discount.DiscountCreateDto;
 import com.tmaksimenko.storefront.dto.discount.DiscountDto;
 import com.tmaksimenko.storefront.exception.DiscountNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
-import com.tmaksimenko.storefront.model.Audit;
+import com.tmaksimenko.storefront.model.base.Audit;
 import com.tmaksimenko.storefront.model.discount.Discount;
 import com.tmaksimenko.storefront.model.discount.GeneralDiscount;
 import com.tmaksimenko.storefront.model.discount.ProductDiscount;

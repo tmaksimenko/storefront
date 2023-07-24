@@ -1,7 +1,7 @@
 package com.tmaksimenko.storefront.controller.admin;
 
-import com.tmaksimenko.storefront.dto.ProductCreateDto;
-import com.tmaksimenko.storefront.dto.ProductDto;
+import com.tmaksimenko.storefront.dto.product.ProductCreateDto;
+import com.tmaksimenko.storefront.dto.product.ProductDto;
 import com.tmaksimenko.storefront.model.Product;
 import com.tmaksimenko.storefront.service.product.ProductService;
 import io.swagger.v3.oas.annotations.Operation;

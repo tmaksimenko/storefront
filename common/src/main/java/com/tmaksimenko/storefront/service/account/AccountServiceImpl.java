@@ -3,7 +3,7 @@ package com.tmaksimenko.storefront.service.account;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
-import com.tmaksimenko.storefront.model.Account;
+import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;

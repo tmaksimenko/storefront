@@ -1,6 +1,8 @@
-package com.tmaksimenko.storefront.model;
+package com.tmaksimenko.storefront.model.account;
 
 import com.tmaksimenko.storefront.enums.Role;
+import com.tmaksimenko.storefront.model.Order;
+import com.tmaksimenko.storefront.model.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

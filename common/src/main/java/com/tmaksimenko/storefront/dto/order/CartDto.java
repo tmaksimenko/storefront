@@ -1,6 +1,6 @@
 package com.tmaksimenko.storefront.dto.order;
 
-import com.tmaksimenko.storefront.dto.PaymentCreateDto;
+import com.tmaksimenko.storefront.dto.payment.PaymentCreateDto;
 import lombok.*;
 
 import java.util.List;

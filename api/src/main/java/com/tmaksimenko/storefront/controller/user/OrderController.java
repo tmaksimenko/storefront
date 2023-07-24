@@ -4,7 +4,7 @@ import com.tmaksimenko.storefront.dto.order.OrderGetDto;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
-import com.tmaksimenko.storefront.model.Account;
+import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.model.orderProduct.OrderProduct;
 import com.tmaksimenko.storefront.service.account.AccountService;

@@ -1,7 +1,7 @@
 package com.tmaksimenko.storefront.model.payment;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tmaksimenko.storefront.dto.PaymentGetDto;
+import com.tmaksimenko.storefront.dto.payment.PaymentGetDto;
 import com.tmaksimenko.storefront.enums.payment.PaymentProvider;
 import com.tmaksimenko.storefront.enums.payment.PaymentStatus;
 import jakarta.persistence.Embeddable;

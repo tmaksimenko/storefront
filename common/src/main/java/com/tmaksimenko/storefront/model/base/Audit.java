@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.model;
+package com.tmaksimenko.storefront.model.base;
 
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.PrePersist;
@@ -44,6 +44,11 @@ public class Audit {
             updatedBy = ((UserDetails)principal).getUsername();
         else
             updatedBy = principal.toString();
+    }
+
+    public Audit (String createdBy) {
+        this.createdOn = LocalDateTime.now();
+        this.createdBy = createdBy;
     }
 
 }

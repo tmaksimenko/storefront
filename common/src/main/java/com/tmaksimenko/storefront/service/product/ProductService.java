@@ -1,8 +1,8 @@
 package com.tmaksimenko.storefront.service.product;
 
-import com.tmaksimenko.storefront.dto.ProductCreateDto;
+import com.tmaksimenko.storefront.dto.product.ProductCreateDto;
 import com.tmaksimenko.storefront.dto.order.CartDto;
-import com.tmaksimenko.storefront.model.Cart;
+import com.tmaksimenko.storefront.model.account.Cart;
 import com.tmaksimenko.storefront.model.Product;
 import org.springframework.http.ResponseEntity;
 

@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.model;
+package com.tmaksimenko.storefront.model.account;
 
 import com.tmaksimenko.storefront.model.payment.Payment;
 import jakarta.persistence.*;

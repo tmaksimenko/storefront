@@ -1,10 +1,10 @@
 package com.tmaksimenko.storefront.controller.user;
 
-import com.tmaksimenko.storefront.dto.ProductDto;
+import com.tmaksimenko.storefront.dto.product.ProductDto;
 import com.tmaksimenko.storefront.dto.order.CartDto;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
-import com.tmaksimenko.storefront.model.Account;
-import com.tmaksimenko.storefront.model.Cart;
+import com.tmaksimenko.storefront.model.account.Account;
+import com.tmaksimenko.storefront.model.account.Cart;
 import com.tmaksimenko.storefront.model.Product;
 import com.tmaksimenko.storefront.service.account.AccountService;
 import com.tmaksimenko.storefront.service.product.ProductService;

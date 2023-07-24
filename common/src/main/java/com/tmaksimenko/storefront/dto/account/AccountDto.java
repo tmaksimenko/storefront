@@ -1,7 +1,7 @@
 package com.tmaksimenko.storefront.dto.account;
 
 import com.tmaksimenko.storefront.enums.Role;
-import com.tmaksimenko.storefront.model.Audit;
+import com.tmaksimenko.storefront.model.base.Audit;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;

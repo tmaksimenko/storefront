@@ -1,6 +1,6 @@
 package com.tmaksimenko.storefront.repository;
 
-import com.tmaksimenko.storefront.model.Account;
+import com.tmaksimenko.storefront.model.account.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
