@@ -85,9 +85,9 @@ public class AdminAccountController {
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
     @PostMapping("/add")
-    public ResponseEntity<String> addAccount(@RequestBody AccountCreateDto accountCreateDto) {
+    public ResponseEntity<Account> addAccount(@RequestBody AccountCreateDto accountCreateDto) {
         accountCreateDto.setPassword(passwordEncoder.encode(accountCreateDto.getPassword()));
-        return accountService.saveAccount(accountCreateDto.toFullDto(SecurityContextHolder.getContext().getAuthentication().getName()));
+        return ResponseEntity.ok(accountService.createAccount(accountCreateDto.toFullDto(SecurityContextHolder.getContext().getAuthentication().getName())));
     }
 
     @Operation(summary = "Update an account", parameters =

@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,23 +62,15 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ResponseEntity<String> saveAccount (AccountFullDto accountFullDto) {
+    public Account createAccount (AccountFullDto accountFullDto) {
         if (!accountRepository.findByUsername(accountFullDto.getUsername()).isEmpty())
-            return new ResponseEntity<>("ACCOUNT ALREADY EXISTS", HttpStatus.FORBIDDEN);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ACCOUNT ALREADY EXISTS");
 
         if (Arrays.stream(Role.values()).noneMatch((role) ->
                 role.equals(accountFullDto.getRole())))
-            return new ResponseEntity<>("ROLE NOT FOUND", HttpStatus.FORBIDDEN);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ROLE NOT FOUND");
 
-        accountRepository.save(Account.builder()
-                .username(accountFullDto.getUsername())
-                .email(accountFullDto.getEmail())
-                .password(accountFullDto.getPassword())
-                .role(accountFullDto.getRole())
-                .audit(accountFullDto.getAudit())
-                .build());
-
-        return new ResponseEntity<>("SUCCESS", HttpStatus.CREATED);
+        return accountRepository.save(accountFullDto.toNewAccount());
     }
 
     @CachePut

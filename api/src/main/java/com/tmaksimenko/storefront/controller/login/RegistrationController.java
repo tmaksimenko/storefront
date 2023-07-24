@@ -3,6 +3,7 @@ package com.tmaksimenko.storefront.controller.login;
 
 import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.enums.Role;
+import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.service.account.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -40,7 +41,7 @@ public class RegistrationController {
                             description = "JWT Token (optional)")
             })
     @PostMapping()
-    public ResponseEntity<String> addAccount(@RequestBody AccountDto accountDto) {
+    public ResponseEntity<Account> addAccount(@RequestBody AccountDto accountDto) {
         if (    isEmpty(accountDto.getUsername()) ||
                 isEmpty(accountDto.getEmail()) ||
                 isEmpty(accountDto.getPassword()))
@@ -49,10 +50,10 @@ public class RegistrationController {
         accountDto.setPassword(passwordEncoder.encode(accountDto.getPassword()));
 
         if (SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser"))
-            return accountService.saveAccount(accountDto.toFullDto(Role.ROLE_USER,
-                    accountDto.getUsername()));
-        else return accountService.saveAccount(accountDto.toFullDto(Role.ROLE_USER,
-                    SecurityContextHolder.getContext().getAuthentication().getName()));
+            return ResponseEntity.ok(accountService.createAccount(accountDto.toFullDto(Role.ROLE_USER,
+                    accountDto.getUsername())));
+        else return ResponseEntity.ok(accountService.createAccount(accountDto.toFullDto(Role.ROLE_USER,
+                    SecurityContextHolder.getContext().getAuthentication().getName())));
     }
 
 }
