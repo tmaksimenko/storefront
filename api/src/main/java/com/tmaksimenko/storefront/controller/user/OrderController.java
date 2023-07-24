@@ -1,10 +1,12 @@
 package com.tmaksimenko.storefront.controller.user;
 
 import com.tmaksimenko.storefront.dto.order.OrderGetDto;
+import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.model.orderProduct.OrderProduct;
+import com.tmaksimenko.storefront.service.account.AccountService;
 import com.tmaksimenko.storefront.service.order.OrderService;
 import com.tmaksimenko.storefront.service.product.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class OrderController {
 
+    final AccountService accountService;
     final OrderService orderService;
     final ProductService productService;
 
@@ -50,15 +53,12 @@ public class OrderController {
         return new ResponseEntity<>(orderGetDtos, HttpStatus.OK);
     }
 
-    @Operation(
-            summary = "View a specific order from your account",
-            parameters = {
+    @Operation(summary = "View a specific order from your account", parameters = {
                     @Parameter(
                             in = ParameterIn.HEADER,
                             name = "X-Auth-Token",
                             required = true,
-                            description = "JWT Token, can be generated in auth controller /auth")
-            })
+                            description = "JWT Token, can be generated in auth controller /auth")})
     @Cacheable("orders")
     @GetMapping("/view")
     public ResponseEntity<OrderGetDto> viewOrderDetails(@RequestParam Long id) {
@@ -90,6 +90,10 @@ public class OrderController {
         Optional<Order> optionalOrder = orderService.findById(id);
         if (optionalOrder.isEmpty())
             return new ResponseEntity<>("ORDER NOT FOUND", HttpStatus.NOT_FOUND);
+
+        if (!accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get()
+                .getOrders().contains(optionalOrder.get()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ORDER NOT YOURS");
 
         Order order = optionalOrder.get();
 
@@ -135,13 +139,16 @@ public class OrderController {
     }
 
     @Operation(summary = "Delete order", parameters =
-    @Parameter(
-            in = ParameterIn.HEADER,
-            name = "X-Auth-Token",
-            required = true,
-            description = "JWT Token, can be generated in auth controller /auth"))
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-Auth-Token",
+                            required = true,
+                            description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/delete")
     public ResponseEntity<String> removeOrder(@RequestParam Long id) {
+        if (! accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(AccountNotFoundException::new)
+                .getOrders().contains(orderService.findById(id).orElseThrow(OrderNotFoundException::new)))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ORDER NOT YOURS");
         try {
             return orderService.deleteOrder(id);
         } catch (OrderNotFoundException e) {

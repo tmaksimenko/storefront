@@ -9,12 +9,15 @@ import com.tmaksimenko.storefront.model.Product;
 import com.tmaksimenko.storefront.service.account.AccountService;
 import com.tmaksimenko.storefront.service.product.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +28,7 @@ import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 @Tag(name = "User Operations")
 @RestController
 @RequestMapping("/products")
+@EnableCaching
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ProductController {
 
@@ -32,6 +36,7 @@ public class ProductController {
     final ProductService productService;
 
     @Operation(summary = "Fetch all products")
+    @Cacheable("products")
     @GetMapping("/all")
     public ResponseEntity<List<ProductDto>> findAll() {
         List<Product> products = productService.findAll();
@@ -45,8 +50,12 @@ public class ProductController {
         return ResponseEntity.of(productService.findById(id));
     }
 
-    @Operation(summary = "View cart")
-    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "View cart", parameters =
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-Auth-Token",
+                            required = true,
+                            description = "JWT Token, can be generated in auth controller /auth"))
     @GetMapping("/cart")
     public ResponseEntity<Cart> viewCart () {
         return new ResponseEntity<>(
@@ -55,8 +64,12 @@ public class ProductController {
                 HttpStatus.OK);
     }
 
-    @Operation(summary = "Create a new cart (replaces previous)")
-    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Create a new cart (replaces previous)", parameters =
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-Auth-Token",
+                            required = true,
+                            description = "JWT Token, can be generated in auth controller /auth"))
     @PostMapping("/cart")
     public ResponseEntity<String> createCart (@RequestBody CartDto cartDto) {
         Account account = accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication()
@@ -67,8 +80,12 @@ public class ProductController {
         return new ResponseEntity<>("CART CREATED", HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Delete the cart")
-    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Delete the cart", parameters =
+                    @Parameter(
+                            in = ParameterIn.HEADER,
+                            name = "X-Auth-Token",
+                            required = true,
+                            description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/cart")
     public ResponseEntity<String> deleteCart () {
         @SuppressWarnings("all")

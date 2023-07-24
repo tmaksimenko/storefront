@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -37,10 +38,11 @@ public class WebSecurityConfig {
                 .csrf().disable()
                 .authorizeHttpRequests()
                 .requestMatchers("/login", "/error", "/register").permitAll()
+                .requestMatchers(HttpMethod.GET, "/products/all", "/products/view").permitAll()
                 .requestMatchers("/v3/**", "/swagger-ui/**").permitAll()
                 .requestMatchers("/auth", "/auth/**").permitAll()
-                .requestMatchers("/orders/all", "/accounts/all", "/orders/create").authenticated()
-                .anyRequest().authenticated()//.hasRole("ADMIN")
+                .requestMatchers("/orders/**", "/account/**", "/products/**").authenticated()
+                .anyRequest().hasRole("ADMIN")
                 .and()
                 .exceptionHandling(exc -> exc.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

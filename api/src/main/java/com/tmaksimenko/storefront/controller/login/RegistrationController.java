@@ -41,11 +41,13 @@ public class RegistrationController {
             })
     @PostMapping()
     public ResponseEntity<String> addAccount(@RequestBody AccountDto accountDto) {
-        if (isEmpty(accountDto.getUsername()) ||
-            isEmpty(accountDto.getEmail()) ||
-            isEmpty(accountDto.getPassword()))
+        if (    isEmpty(accountDto.getUsername()) ||
+                isEmpty(accountDto.getEmail()) ||
+                isEmpty(accountDto.getPassword()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ACCOUNT REQUIRES ALL FIELDS");
+
         accountDto.setPassword(passwordEncoder.encode(accountDto.getPassword()));
+
         if (SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser"))
             return accountService.createAccount(accountDto.toFullDto(Role.ROLE_USER,
                     accountDto.getUsername()));

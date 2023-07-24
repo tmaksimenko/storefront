@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -32,6 +33,7 @@ import java.util.Optional;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 
 @Service
+@Transactional
 @EnableCaching
 @CacheConfig(cacheNames = "orders")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
