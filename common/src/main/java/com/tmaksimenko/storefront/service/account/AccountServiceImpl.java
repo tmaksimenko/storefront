@@ -61,7 +61,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ResponseEntity<String> createAccount(AccountFullDto accountFullDto) {
+    public ResponseEntity<String> saveAccount (AccountFullDto accountFullDto) {
         if (!accountRepository.findByUsername(accountFullDto.getUsername()).isEmpty())
             return new ResponseEntity<>("ACCOUNT ALREADY EXISTS", HttpStatus.FORBIDDEN);
 

@@ -14,7 +14,7 @@ import java.util.Set;
 @Entity
 @Table(name = "accounts")
 @Data
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @EqualsAndHashCode(exclude = "orders")
 public class Account extends BaseEntity {

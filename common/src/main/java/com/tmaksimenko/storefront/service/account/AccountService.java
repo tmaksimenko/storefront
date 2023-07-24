@@ -20,7 +20,7 @@ public interface AccountService {
 
     Optional<Account> findByLogin(String login);
 
-    ResponseEntity<String> createAccount(AccountFullDto accountFullDto);
+    ResponseEntity<String> saveAccount(AccountFullDto accountFullDto);
 
     ResponseEntity<String> updateAccount(Account oldAccount, AccountFullDto accountFullDto);
 

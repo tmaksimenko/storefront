@@ -49,9 +49,9 @@ public class RegistrationController {
         accountDto.setPassword(passwordEncoder.encode(accountDto.getPassword()));
 
         if (SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser"))
-            return accountService.createAccount(accountDto.toFullDto(Role.ROLE_USER,
+            return accountService.saveAccount(accountDto.toFullDto(Role.ROLE_USER,
                     accountDto.getUsername()));
-        else return accountService.createAccount(accountDto.toFullDto(Role.ROLE_USER,
+        else return accountService.saveAccount(accountDto.toFullDto(Role.ROLE_USER,
                     SecurityContextHolder.getContext().getAuthentication().getName()));
     }
 
