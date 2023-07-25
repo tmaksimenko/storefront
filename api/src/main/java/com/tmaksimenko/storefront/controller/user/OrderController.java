@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.HttpStatus;
@@ -29,8 +30,9 @@ import java.util.stream.Collectors;
 
 @Tag(name = "User Operations")
 @RestController
-@RequestMapping("/orders")
 @EnableCaching
+@CacheConfig(cacheNames = "orders")
+@RequestMapping("/orders")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class OrderController {
 
