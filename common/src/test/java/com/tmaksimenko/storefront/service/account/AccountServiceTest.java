@@ -1,6 +1,7 @@
 package com.tmaksimenko.storefront.service.account;
 
 import com.tmaksimenko.storefront.enums.Role;
+import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.account.Address;
 import com.tmaksimenko.storefront.model.base.Audit;
@@ -14,11 +15,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.test.context.annotation.SecurityTestExecutionListeners;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -31,7 +32,6 @@ import static org.mockito.Mockito.verify;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @ExtendWith(MockitoExtension.class)
-@SecurityTestExecutionListeners
 public class AccountServiceTest {
 
     @Mock
@@ -41,11 +41,14 @@ public class AccountServiceTest {
 
     AccountService accountService;
 
+    AccountService spyAccountService;
+
     Account account;
 
     @BeforeEach
     public void setup () {
         accountService = new AccountServiceImplementation(accountRepository);
+        spyAccountService = Mockito.spy(accountService);
         account = Account.builder()
                 .id(1L)
                 .audit(new Audit("Test"))
@@ -355,6 +358,94 @@ public class AccountServiceTest {
         assertThat(account1).isEqualTo(account);
     }
 
+    @Test
+    @DisplayName("Successful deleteAccount - using id")
+    public void test_successful_deleteAccount_id () {
+        // given
+        given(accountRepository.findById(account.getId())).willReturn(Optional.of(account));
 
+        // when
+        Account account1 = accountService.deleteAccount(account.getId());
+
+        // then
+        ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
+        verify(accountRepository).delete(captor.capture());
+        assertThat(account1).isSameAs(account).isSameAs(captor.getValue());
+    }
+
+    @Test
+    @DisplayName("Successful deleteAccount - using username")
+    public void test_successful_deleteAccount_username () {
+        // given
+        given(spyAccountService.findByLogin(account.getUsername())).willReturn(Optional.of(account));
+
+        // when
+        Account account1 = spyAccountService.deleteAccount(account.getUsername());
+
+        // then
+        ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
+        verify(accountRepository).delete(captor.capture());
+        assertThat(account1).isSameAs(account).isSameAs(captor.getValue());
+    }
+
+    @Test
+    @DisplayName("Successful deleteAccount - using email")
+    public void test_successful_deleteAccount_email () {
+        // given
+        given(spyAccountService.findByLogin(account.getEmail())).willReturn(Optional.of(account));
+
+        // when
+        Account account1 = spyAccountService.deleteAccount(account.getEmail());
+
+        // then
+        ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
+        verify(accountRepository).delete(captor.capture());
+        assertThat(account1).isSameAs(account).isSameAs(captor.getValue());
+    }
+
+    @Test
+    @DisplayName("Failed deleteAccount - using id")
+    public void test_failed_deleteAccount_id () {
+        // given
+        given(accountRepository.findById(account.getId())).willReturn(Optional.empty());
+
+        // when
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class,
+                () -> spyAccountService.deleteAccount(account.getId()));
+
+        // then
+        assertThat(exception).hasMessageContaining("ACCOUNT NOT FOUND")
+                .hasCause(new AccountNotFoundException());
+    }
+
+    @Test
+    @DisplayName("Failed deleteAccount - using username")
+    public void test_failed_deleteAccount_username () {
+        // given
+        given(spyAccountService.findByLogin(account.getUsername())).willReturn(Optional.empty());
+
+        // when
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class,
+                () -> spyAccountService.deleteAccount(account.getUsername()));
+
+        // then
+        assertThat(exception).hasMessageContaining("ACCOUNT NOT FOUND")
+                .hasCause(new AccountNotFoundException());
+    }
+
+    @Test
+    @DisplayName("Failed deleteAccount - using email")
+    public void test_failed_deleteAccount_email () {
+        // given
+        given(spyAccountService.findByLogin(account.getEmail())).willReturn(Optional.empty());
+
+        // when
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class,
+                () -> spyAccountService.deleteAccount(account.getEmail()));
+
+        // then
+        assertThat(exception).hasMessageContaining("ACCOUNT NOT FOUND")
+                .hasCause(new AccountNotFoundException());
+    }
 
 }
