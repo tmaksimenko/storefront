@@ -58,7 +58,7 @@ public class AdminDiscountController {
             return ((Discount) x).toDto();
         }).collect(Collectors.toList());
 
-        return new ResponseEntity<>(discountDtos, HttpStatus.OK);
+        return ResponseEntity.ok(discountDtos);
     }
 
     @Operation(summary = "View a specific discount", parameters = {
@@ -72,7 +72,7 @@ public class AdminDiscountController {
     public ResponseEntity<DiscountDto> viewDiscount (@RequestParam Long id) {
         Optional<? extends Discount> optionalDiscount = discountService.findById(id);
         if (optionalDiscount.isPresent())
-            return new ResponseEntity<>(optionalDiscount.get().toDto(), HttpStatus.OK);
+            return ResponseEntity.ok(optionalDiscount.get().toDto());
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "DISCOUNT NOT FOUND", new DiscountNotFoundException());
     }
 
@@ -84,7 +84,7 @@ public class AdminDiscountController {
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
     @PostMapping("/add")
-    public ResponseEntity<String> createDiscount (DiscountCreateDto discountCreateDto) {
+    public ResponseEntity<Discount> createDiscount (DiscountCreateDto discountCreateDto) {
         Audit audit = Audit.builder().createdOn(LocalDateTime.now()).createdBy(
                 SecurityContextHolder.getContext().getAuthentication().getName()).build();
         if (ObjectUtils.isEmpty(discountCreateDto.getProductId())) {
@@ -92,13 +92,13 @@ public class AdminDiscountController {
                     .role(discountCreateDto.getRole())
                     .audit(audit)
                     .percent(discountCreateDto.getPercent()).build();
-            return discountService.createDiscount(discount);
+            return ResponseEntity.ok(discountService.createDiscount(discount));
         } else try {
             ProductDiscount discount = ProductDiscount.builder()
                     .product(productService.findById(discountCreateDto.getProductId()).orElseThrow(ProductNotFoundException::new))
                     .audit(audit)
                     .percent(discountCreateDto.getPercent()).build();
-            return discountService.createDiscount(discount);
+            return ResponseEntity.ok(discountService.createDiscount(discount));
         } catch (ProductNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "PRODUCT NOT FOUND", e);
         }
@@ -111,9 +111,9 @@ public class AdminDiscountController {
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/delete")
-    public ResponseEntity<String> removeDiscount (@RequestParam Long id) {
+    public ResponseEntity<Discount> removeDiscount (@RequestParam Long id) {
         try {
-            return discountService.deleteDiscount(id);
+            return ResponseEntity.ok(discountService.deleteDiscount(id));
         } catch (DiscountNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Discount NOT FOUND", e);
         }

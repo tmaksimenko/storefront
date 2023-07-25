@@ -10,7 +10,6 @@ import com.tmaksimenko.storefront.repository.ProductDiscountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -52,28 +51,29 @@ public class DiscountServiceImpl implements DiscountService{
     }
 
     @Override
-    public ResponseEntity<String> createDiscount (GeneralDiscount discount) {
-        generalDiscountRepository.save(discount);
-        return new ResponseEntity<>("DISCOUNT CREATED", HttpStatus.CREATED);
+    public GeneralDiscount createDiscount (GeneralDiscount discount) {
+        return generalDiscountRepository.save(discount);
     }
 
     @Override
-    public ResponseEntity<String> createDiscount (ProductDiscount discount) {
-        productDiscountRepository.save(discount);
-        return new ResponseEntity<>("DISCOUNT CREATED", HttpStatus.CREATED);
+    public ProductDiscount createDiscount (ProductDiscount discount) {
+        return productDiscountRepository.save(discount);
     }
 
     @Override
-    public ResponseEntity<String> deleteDiscount (Long id) {
-        try {
-            generalDiscountRepository.deleteById(id);
-        } catch (Exception e) { try {
-                productDiscountRepository.deleteById(id);
-            } catch (Exception f) {
+    public Discount deleteDiscount (Long id) {
+        Optional<GeneralDiscount> generalDiscount = generalDiscountRepository.findById(id);
+        if (generalDiscount.isPresent()) {
+            generalDiscountRepository.delete(generalDiscount.get());
+            return generalDiscount.get();
+        } else {
+            Optional<ProductDiscount> productDiscount = productDiscountRepository.findById(id);
+            if (productDiscount.isPresent()) {
+                productDiscountRepository.delete(productDiscount.get());
+                return productDiscount.get();
+            } else
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "DISCOUNT NOT FOUND", new DiscountNotFoundException());
-            }
         }
-        return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
     }
 
 }
