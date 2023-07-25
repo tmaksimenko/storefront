@@ -1,6 +1,8 @@
 package com.tmaksimenko.storefront.model;
 
 import com.tmaksimenko.storefront.dto.order.OrderGetDto;
+import com.tmaksimenko.storefront.model.account.Account;
+import com.tmaksimenko.storefront.model.base.BaseEntity;
 import com.tmaksimenko.storefront.model.orderProduct.OrderProduct;
 import com.tmaksimenko.storefront.model.payment.Payment;
 import jakarta.persistence.*;

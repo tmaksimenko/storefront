@@ -14,6 +14,7 @@ import lombok.experimental.SuperBuilder;
 @Data
 @NoArgsConstructor
 public class GeneralDiscount extends Discount {
+
     String role;
 
     @Override

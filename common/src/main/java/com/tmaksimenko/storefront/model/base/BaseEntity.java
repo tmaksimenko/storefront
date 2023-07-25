@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.model;
+package com.tmaksimenko.storefront.model.base;
 
 import jakarta.persistence.*;
 import lombok.Data;

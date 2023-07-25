@@ -15,6 +15,6 @@ public class ProductDto {
 
     String brand;
 
-    float price;
+    Double price;
 
 }

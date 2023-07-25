@@ -1,16 +1,20 @@
 package com.tmaksimenko.storefront.dto.product;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
 @Getter
+@Builder
 @AllArgsConstructor
 public class ProductCreateDto {
-    Long productId;
-    int quantity;
 
-    @SuppressWarnings("unused")
-    public ProductCreateDto(Long productId) {
-        this.productId = productId;
-        this.quantity = 1;
-    }
+    String name;
+
+    String brand;
+
+    Double price;
+
+    Double weight;
+
 }

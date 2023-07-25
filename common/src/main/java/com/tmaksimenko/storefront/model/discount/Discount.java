@@ -1,7 +1,7 @@
 package com.tmaksimenko.storefront.model.discount;
 
 import com.tmaksimenko.storefront.dto.discount.DiscountDto;
-import com.tmaksimenko.storefront.model.BaseEntity;
+import com.tmaksimenko.storefront.model.base.BaseEntity;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public class Discount extends BaseEntity {
 
-    double percent;
+    Double percent;
 
     public DiscountDto toDto () {
         return DiscountDto.builder().percent(percent).build();

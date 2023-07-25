@@ -1,7 +1,7 @@
 package com.tmaksimenko.storefront.service.account;
 
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
-import com.tmaksimenko.storefront.model.Account;
+import com.tmaksimenko.storefront.model.account.Account;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

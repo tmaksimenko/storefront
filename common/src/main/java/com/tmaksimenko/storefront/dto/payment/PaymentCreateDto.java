@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.dto;
+package com.tmaksimenko.storefront.dto.payment;
 
 import com.tmaksimenko.storefront.enums.payment.PaymentProvider;
 import com.tmaksimenko.storefront.enums.payment.PaymentStatus;
@@ -17,9 +17,9 @@ public class PaymentCreateDto {
 
     PaymentProvider paymentProvider;
 
-    public Payment toPayment () {
+    public Payment toPayment (PaymentStatus paymentStatus) {
         return Payment.builder()
-                .paymentStatus(PaymentStatus.NOT_PAID)
+                .paymentStatus(paymentStatus)
                 .paymentInfo(paymentInfo)
                 .paymentProvider(paymentProvider).build();
     }

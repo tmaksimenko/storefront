@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.dto;
+package com.tmaksimenko.storefront.dto.payment;
 
 import com.tmaksimenko.storefront.enums.payment.PaymentProvider;
 import com.tmaksimenko.storefront.enums.payment.PaymentStatus;

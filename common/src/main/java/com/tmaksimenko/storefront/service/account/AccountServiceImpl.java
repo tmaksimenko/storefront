@@ -1,26 +1,25 @@
 package com.tmaksimenko.storefront.service.account;
 
-import com.tmaksimenko.storefront.dto.account.AccountCreateDto;
-import com.tmaksimenko.storefront.dto.account.AccountDto;
+import com.tmaksimenko.storefront.dto.account.AccountFullDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
-import com.tmaksimenko.storefront.model.Account;
-import com.tmaksimenko.storefront.model.Audit;
+import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class AccountServiceImpl implements AccountService {
 
@@ -55,78 +54,65 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ResponseEntity<String> createAccount(AccountCreateDto accountCreateDto, String createdBy) {
-        if (!accountRepository.findByUsername(accountCreateDto.getUsername()).isEmpty())
-            return new ResponseEntity<>("ACCOUNT ALREADY EXISTS", HttpStatus.FORBIDDEN);
+    public Account createAccount (AccountFullDto accountFullDto) {
+        if (!accountRepository.findByUsername(accountFullDto.getUsername()).isEmpty())
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ACCOUNT ALREADY EXISTS");
 
         if (Arrays.stream(Role.values()).noneMatch((role) ->
-                role.equals(accountCreateDto.getRole())))
-            return new ResponseEntity<>("ACCOUNT NEEDS ROLE", HttpStatus.FORBIDDEN);
+                role.equals(accountFullDto.getRole())))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ROLE NOT FOUND");
 
-        if (    accountCreateDto.getUsername().isEmpty() ||
-                accountCreateDto.getEmail().isEmpty() ||
-                accountCreateDto.getPassword().isEmpty())
-            return new ResponseEntity<>("ACCOUNT NEEDS ALL FIELDS", HttpStatus.FORBIDDEN);
-
-        accountRepository.save(Account.builder()
-                .username(accountCreateDto.getUsername())
-                .email(accountCreateDto.getEmail())
-                .password(accountCreateDto.getPassword())
-                .role(accountCreateDto.getRole())
-                .audit(Audit.builder().createdOn(LocalDateTime.now()).createdBy(createdBy).build())
-                .build());
-
-        return new ResponseEntity<>("SUCCESS", HttpStatus.CREATED);
+        return accountRepository.save(accountFullDto.toNewAccount());
     }
 
     @Override
-    public ResponseEntity<String> updateAccount(Account oldAccount, AccountDto accountDto) {
-        List<String> changedList = new ArrayList<>();
+    public Account updateAccount(AccountFullDto accountFullDto) {
+        Account account;
 
-        if (!StringUtils.isEmpty(accountDto.getUsername()))  {
-            oldAccount.setUsername(accountDto.getUsername());
-            changedList.add("USERNAME");
+        try {
+            if (ObjectUtils.isNotEmpty(accountFullDto.getUsername()))
+                account = accountRepository.findByUsername(accountFullDto.getUsername()).get(0);
+            else if (ObjectUtils.isNotEmpty(accountFullDto.getEmail()))
+                account = accountRepository.findByEmail(accountFullDto.getEmail()).get(0);
+            else
+                account = accountRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get(0);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
         }
-        if (!StringUtils.isEmpty(accountDto.getEmail())) {
-            oldAccount.setEmail(accountDto.getEmail());
-            changedList.add("EMAIL");
-        }
-        if (!StringUtils.isEmpty(accountDto.getPassword())) {
-            oldAccount.setPassword(accountDto.getPassword());
-            changedList.add("PASSWORD");
-        }
-        if (!(accountDto.getRole().equals(oldAccount.getRole()))) {
+
+        if (ObjectUtils.isNotEmpty(accountFullDto.getUsername()))
+            account.setUsername(accountFullDto.getUsername());
+        if (ObjectUtils.isNotEmpty(accountFullDto.getEmail()))
+            account.setEmail(accountFullDto.getEmail());
+        if (ObjectUtils.isNotEmpty(accountFullDto.getPassword()))
+            account.setPassword(accountFullDto.getPassword());
+        if (ObjectUtils.isNotEmpty(accountFullDto.getAddress()))
+            account.setAddress(accountFullDto.getAddress());
+
+        if (! (accountFullDto.getRole().equals(account.getRole())))
             if (Arrays.stream(Role.values()).anyMatch((role) ->
-                    role.equals(accountDto.getRole()))) {
-                oldAccount.setRole(accountDto.getRole());
-                changedList.add("ROLE");
-            } else return new ResponseEntity<>("INVALID ROLE GIVEN", HttpStatus.FORBIDDEN);
-        }
+                    role.equals(accountFullDto.getRole())))
+                account.setRole(accountFullDto.getRole());
+            else throw new ResponseStatusException(HttpStatus.FORBIDDEN, "INVALID ROLE GIVEN");
 
-        accountRepository.save(oldAccount);
-
-        return new ResponseEntity<>(String.format("CHANGED FIELDS: %s", changedList), HttpStatus.OK);
+        return account;
     }
 
     @Override
-    public ResponseEntity<String> deleteAccount(Long id) {
-        if (accountRepository.findById(id).isEmpty())
-            throw new AccountNotFoundException();
-        accountRepository.deleteById(id);
-        return new ResponseEntity<>("ACCOUNT DELETED", HttpStatus.OK);
+    public Account deleteAccount(Long id) {
+        Optional<Account> account = accountRepository.findById(id);
+        if (account.isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
+        accountRepository.delete(account.get());
+        return account.get();
     }
 
     @Override
-    public ResponseEntity<String> deleteAccount(String login) {
-        Optional<Account> optionalAccount = this.findByUsername(login);
-        if (optionalAccount.isEmpty()) {
-            optionalAccount = this.findByEmail(login);
-            if (optionalAccount.isEmpty())
-                throw new AccountNotFoundException();
-        }
-
-        accountRepository.deleteById(optionalAccount.get().getId());
-        return new ResponseEntity<>("ACCOUNT DELETED", HttpStatus.OK);
+    public Account deleteAccount(String login) {
+        Optional<Account> account = this.findByLogin(login);
+        if (account.isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
+        accountRepository.delete(account.get());
+        return account.get();
     }
-
 }

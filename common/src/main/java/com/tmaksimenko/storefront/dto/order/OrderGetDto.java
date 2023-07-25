@@ -1,8 +1,8 @@
 package com.tmaksimenko.storefront.dto.order;
 
 import com.tmaksimenko.storefront.dto.OrderProductDto;
-import com.tmaksimenko.storefront.dto.PaymentGetDto;
-import com.tmaksimenko.storefront.model.Audit;
+import com.tmaksimenko.storefront.dto.payment.PaymentGetDto;
+import com.tmaksimenko.storefront.model.base.Audit;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

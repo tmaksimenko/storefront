@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.controller.open;
+package com.tmaksimenko.storefront.controller.login;
 
 import com.tmaksimenko.storefront.dto.auth.AuthRequest;
 import com.tmaksimenko.storefront.dto.auth.AuthResponse;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Sign-in Portal")
+@Tag(name = "Login Portal")
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
