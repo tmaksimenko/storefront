@@ -84,7 +84,7 @@ public class AccountServiceTest {
         List<Account> accounts = accountService.findAll();
 
         // then
-        assertThat(accounts).isNotNull().contains(account).contains(account1).hasSize(2);
+        assertThat(accounts).isNotEmpty().contains(account).contains(account1).hasSize(2);
     }
 
     @Test
