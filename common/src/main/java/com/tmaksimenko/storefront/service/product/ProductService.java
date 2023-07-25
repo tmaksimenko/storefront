@@ -18,10 +18,10 @@ public interface ProductService {
 
     Cart createCart (CartDto cartDto);
 
-    ResponseEntity<String> createProduct (ProductCreateDto productCreateDto);
+    Product createProduct (ProductCreateDto productCreateDto);
 
-    ResponseEntity<String> updateProduct (Long id, ProductCreateDto productCreateDto);
+    Product updateProduct (Long id, ProductCreateDto productCreateDto);
 
-    ResponseEntity<String> deleteProduct (Long id);
+    Product deleteProduct (Long id);
 
 }

@@ -1,13 +1,13 @@
 package com.tmaksimenko.storefront.service.product;
 
-import com.tmaksimenko.storefront.dto.product.ProductCreateDto;
 import com.tmaksimenko.storefront.dto.order.CartDto;
 import com.tmaksimenko.storefront.dto.order.CartItemDto;
+import com.tmaksimenko.storefront.dto.product.ProductCreateDto;
 import com.tmaksimenko.storefront.enums.payment.PaymentStatus;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
-import com.tmaksimenko.storefront.model.account.Cart;
 import com.tmaksimenko.storefront.model.Product;
+import com.tmaksimenko.storefront.model.account.Cart;
 import com.tmaksimenko.storefront.model.discount.GeneralDiscount;
 import com.tmaksimenko.storefront.model.discount.ProductDiscount;
 import com.tmaksimenko.storefront.model.payment.Payment;
@@ -17,16 +17,11 @@ import com.tmaksimenko.storefront.service.discount.DiscountService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -35,8 +30,6 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-@EnableCaching
-@CacheConfig(cacheNames = "products")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ProductServiceImpl implements ProductService {
 
@@ -50,7 +43,6 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findAll();
     }
 
-    @Cacheable("products")
     @Override
     public Optional<Product> findById(Long id) {
         return productRepository.findById(id);
@@ -96,47 +88,46 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ResponseEntity<String> createProduct (ProductCreateDto productCreateDto) {
+    public Product createProduct (ProductCreateDto productCreateDto) {
         Product product = Product.builder()
                 .name(productCreateDto.getName())
                 .brand(productCreateDto.getBrand())
                 .price(productCreateDto.getPrice())
                 .weight(productCreateDto.getWeight()).build();
-        productRepository.save(product);
-        return new ResponseEntity<>("PRODUCT CREATED", HttpStatus.CREATED);
+        return productRepository.save(product);
     }
 
     @Override
-    public ResponseEntity<String> updateProduct (Long id, ProductCreateDto productCreateDto) {
+    public Product updateProduct (Long id, ProductCreateDto productCreateDto) {
+        if (productRepository.findById(id).isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "PRODUCT NOT FOUND", new ProductNotFoundException());
 
-        Product product = productRepository.findById(id).orElseThrow(ProductNotFoundException::new);
+        Product product = productRepository.findById(id).get();
 
-        if (!ObjectUtils.isEmpty(productCreateDto.getName()))
+        if (ObjectUtils.isNotEmpty(productCreateDto.getName()))
             product.setName(productCreateDto.getName());
 
-        if (!ObjectUtils.isEmpty(productCreateDto.getBrand()))
+        if (ObjectUtils.isNotEmpty(productCreateDto.getBrand()))
             product.setBrand(productCreateDto.getBrand());
 
-        if (!ObjectUtils.isEmpty(productCreateDto.getPrice()))
+        if (ObjectUtils.isNotEmpty(productCreateDto.getPrice()))
             product.setPrice(productCreateDto.getPrice());
 
-        if (!ObjectUtils.isEmpty(productCreateDto.getWeight()))
+        if (ObjectUtils.isNotEmpty(productCreateDto.getWeight()))
             product.setWeight(productCreateDto.getWeight());
 
-        return new ResponseEntity<>("PRODUCT UPDATED", HttpStatus.OK);
+        return product;
     }
 
     @Override
-    public ResponseEntity<String> deleteProduct (Long id) {
+    public Product deleteProduct (Long id) {
+        Optional<Product> product = productRepository.findById(id);
+        if (product.isEmpty())
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "PRODUCT NOT FOUND", new ProductNotFoundException());
 
-        productRepository.deleteById(id);
+        productRepository.delete(product.get());
 
-        return new ResponseEntity<>("PRODUCT DELETED", HttpStatus.OK);
-    }
-
-    @Scheduled(fixedRate = 1800000)
-    @CacheEvict(allEntries = true)
-    public void emptyCache () {
+        return product.get();
     }
 
 }
