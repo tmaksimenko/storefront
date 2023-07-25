@@ -7,13 +7,19 @@ import com.tmaksimenko.storefront.model.base.Audit;
 import com.tmaksimenko.storefront.repository.AccountRepository;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.test.context.annotation.SecurityTestExecutionListeners;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +27,11 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
-@ExtendWith(MockitoExtension.class)
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@ExtendWith(MockitoExtension.class)
+@SecurityTestExecutionListeners
 public class AccountServiceTest {
 
     @Mock
@@ -36,8 +44,8 @@ public class AccountServiceTest {
     Account account;
 
     @BeforeEach
-    public void setup_each () {
-        accountService = new AccountServiceImpl(accountRepository);
+    public void setup () {
+        accountService = new AccountServiceImplementation(accountRepository);
         account = Account.builder()
                 .id(1L)
                 .audit(new Audit("Test"))
@@ -51,10 +59,12 @@ public class AccountServiceTest {
                         .postalCode("M1M1M1")
                         .build())
                 .build();
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(account.getUsername(), account.getPassword()));
     }
 
-    @DisplayName("Test for non-empty findAll")
     @Test
+    @DisplayName("Successful findAll")
     public void test_successful_findAll () {
         // given
         Account account1 = account.toBuilder()
@@ -69,14 +79,11 @@ public class AccountServiceTest {
         List<Account> accounts = accountService.findAll();
 
         // then
-        assertThat(accounts).isNotNull();
-        assertThat(accounts).contains(account);
-        assertThat(accounts).contains(account1);
-        assertThat(accounts).hasSize(2);
+        assertThat(accounts).isNotNull().contains(account).contains(account1).hasSize(2);
     }
 
-    @DisplayName("Test for non-empty findAll")
     @Test
+    @DisplayName("Empty findAll")
     public void test_empty_findAll () {
         // given
         given(accountRepository.findAll()).willReturn(new ArrayList<>());
@@ -85,12 +92,11 @@ public class AccountServiceTest {
         List<Account> accounts = accountService.findAll();
 
         // then
-        assertThat(accounts).isNotNull();
-        assertThat(accounts).hasSize(0);
+        assertThat(accounts).isNotNull().hasSize(0);
     }
 
-    @DisplayName("Test for successful findById")
     @Test
+    @DisplayName("Successful findById")
     public void test_successful_findById () {
         // given
         given(accountRepository.findById(account.getId())).willReturn(Optional.of(account));
@@ -99,15 +105,14 @@ public class AccountServiceTest {
         Optional<Account> account1 = accountService.findById(account.getId());
 
         // then
-        assertThat(account1).isPresent();
-        assertThat(account1.get()).isEqualTo(account);
+        assertThat(account1).isPresent().get().isSameAs(account);
     }
 
-    @DisplayName("Test for failed findById")
     @Test
+    @DisplayName("Failed findById - not found")
     public void test_failed_findById () {
         // given
-        given(accountRepository.findById(2L)).willReturn(Optional.empty());
+        given(accountRepository.findById(account.getId())).willReturn(Optional.empty());
 
         // when
         Optional<Account> account1 = accountService.findById(account.getId());
@@ -116,8 +121,8 @@ public class AccountServiceTest {
         assertThat(account1).isEmpty();
     }
 
-    @DisplayName("Test for successful findByUsername")
     @Test
+    @DisplayName("Successful findByUsername")
     public void test_successful_findByUsername () {
         // given
         given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of(account));
@@ -126,25 +131,24 @@ public class AccountServiceTest {
         Optional<Account> account1 = accountService.findByUsername(account.getUsername());
 
         // then
-        assertThat(account1.isPresent());
-        assertThat(account1.get().equals(account));
+        assertThat(account1).isPresent().get().isSameAs(account);
     }
 
-    @DisplayName("Test for failed findByUsername")
     @Test
+    @DisplayName("Failed findByUsername - not found")
     public void test_failed_findByUsername () {
         // given
-        given(accountRepository.findByUsername("notTestUser")).willReturn(List.of());
+        given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of());
 
         // when
         Optional<Account> account1 = accountService.findByUsername(account.getUsername());
 
         // then
-        assertThat(account1.isEmpty());
+        assertThat(account1).isEmpty();
     }
 
-    @DisplayName("Test for successful findByEmail")
     @Test
+    @DisplayName("Successful findByEmail")
     public void test_successful_findByEmail () {
         // given
         given(accountRepository.findByEmail(account.getEmail())).willReturn(List.of(account));
@@ -153,25 +157,24 @@ public class AccountServiceTest {
         Optional<Account> account1 = accountService.findByEmail(account.getEmail());
 
         // then
-        assertThat(account1.isPresent());
-        assertThat(account1.get().equals(account));
+        assertThat(account1).isPresent().get().isSameAs(account);
     }
 
-    @DisplayName("Test for failed findByEmail")
     @Test
+    @DisplayName("Failed findByEmail - not found")
     public void test_failed_findByEmail () {
         // given
-        given(accountRepository.findByEmail("notTestMail@mail.com")).willReturn(List.of());
+        given(accountRepository.findByEmail(account.getEmail())).willReturn(List.of());
 
         // when
         Optional<Account> account1 = accountService.findByEmail(account.getEmail());
 
         // then
-        assertThat(account1.isEmpty());
+        assertThat(account1).isEmpty();
     }
 
-    @DisplayName("Test for successful findByLogin with username")
     @Test
+    @DisplayName("Successful findByLogin - with username")
     public void test_successful_findByLogin_withUsername () {
         // given
         given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of(account));
@@ -180,25 +183,24 @@ public class AccountServiceTest {
         Optional<Account> account1 = accountService.findByLogin(account.getUsername());
 
         // then
-        assertThat(account1.isPresent());
-        assertThat(account1.equals(account));
+        assertThat(account1).isPresent().get().isSameAs(account);
     }
 
-    @DisplayName("Test for failed findByLogin with username")
     @Test
+    @DisplayName("Failed findByLogin - with username")
     public void test_failed_findByLogin_withUsername () {
         // given
-        given(accountRepository.findByUsername("notTestUser")).willReturn(List.of());
+        given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of());
 
         // when
         Optional<Account> account1 = accountService.findByLogin(account.getUsername());
 
         // then
-        assertThat(account1.isEmpty());
+        assertThat(account1).isEmpty();
     }
 
-    @DisplayName("Test for successful findByLogin with email")
     @Test
+    @DisplayName("Successful findByLogin - with email")
     public void test_successful_findByLogin_withEmail () {
         // given
         given(accountRepository.findByEmail(account.getEmail())).willReturn(List.of(account));
@@ -207,24 +209,151 @@ public class AccountServiceTest {
         Optional<Account> account1 = accountService.findByLogin(account.getEmail());
 
         // then
-        assertThat(account1.isPresent());
-        assertThat(account1.equals(account));
+        assertThat(account1).isPresent().get().isSameAs(account);
     }
 
-    @DisplayName("Test for failed findByLogin with email")
     @Test
+    @DisplayName("Failed findByLogin - with email")
     public void test_failed_findByLogin_withEmail () {
         // given
-        given(accountRepository.findByEmail("notTestMail@mail.com")).willReturn(List.of());
+        given(accountRepository.findByEmail(account.getEmail())).willReturn(List.of());
 
         // when
         Optional<Account> account1 = accountService.findByLogin(account.getEmail());
 
         // then
-        assertThat(account1.isEmpty());
+        assertThat(account1).isEmpty();
     }
 
+    @Test
+    @DisplayName("Successful createAccount")
+    public void test_successful_createAccount () {
+        // given
+        given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of());
+        given(accountRepository.save(account.toDto().toNewAccount())).willReturn(account.toDto().toNewAccount());
 
+        // when
+        accountService.createAccount(account.toDto());
+
+        // then
+        ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
+        verify(accountRepository).save(captor.capture());
+        assertThat(captor.getValue()).isEqualTo(account.toDto().toNewAccount());
+    }
+
+    @Test
+    @DisplayName("Failed createAccount - account already exists")
+    public void test_failed_createAccount_alreadyExists () {
+        // given
+        given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of(account));
+
+        // when
+        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class,
+                () -> accountService.createAccount(account.toDto()));
+
+        // then
+        assertThat(exception).hasMessageContaining("ACCOUNT ALREADY EXISTS");
+    }
+
+    @Test
+    @DisplayName("Changed updateAccount - using username")
+    public void test_successful_updateAccount_username_allChanged () {
+        // given
+        Account account1 = account.toBuilder()
+                .email("newTestMail@mail.com")
+                .password(passwordEncoder.encode("newPassword"))
+                .address(account.getAddress().toBuilder().postalCode("M2M2M2").build())
+                .role(Role.ROLE_STAFF)
+                .build();
+        given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of(account));
+
+        // when
+        Account account2 = accountService.updateAccount(account1.toDto());
+
+        // then
+        assertThat(account2).isEqualTo(account1);
+    }
+
+    @Test
+    @DisplayName("Unchanged updateAccount - using username")
+    public void test_successful_updateAccount_username_noneChanged () {
+        // given
+        given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of(account));
+
+        // when
+        Account account1 = accountService.updateAccount(account.toDto());
+
+        // then
+        assertThat(account1).isEqualTo(account);
+    }
+
+    @Test
+    @DisplayName("Changed updateAccount - using email")
+    public void test_successful_updateAccount_email_allChanged () {
+        // given
+        Account account1 = account.toBuilder()
+                .username("newTestUser")
+                .password(passwordEncoder.encode("newPassword"))
+                .address(account.getAddress().toBuilder().postalCode("M2M2M2").build())
+                .role(Role.ROLE_STAFF)
+                .build();
+        given(accountRepository.findByEmail(account.getEmail())).willReturn(List.of(account));
+
+        // when
+        Account account2 = accountService.updateAccount(account1.toDto());
+
+        // then
+        assertThat(account2).isEqualTo(account1);
+    }
+
+    @Test
+    @DisplayName("Unchanged updateAccount - using email")
+    public void test_successful_updateAccount_email_noneChanged () {
+        // given
+        given(accountRepository.findByEmail(account.getEmail())).willReturn(List.of(account));
+
+        // when
+        Account account1 = accountService.updateAccount(account.toDto());
+
+        // then
+        assertThat(account1).isEqualTo(account);
+    }
+
+    @Test
+    @DisplayName("Changed updateAccount - using Context")
+    public void test_successful_updateAccount_context_allChanged () {
+        // given
+        Account account1 = account.toBuilder()
+                .username("newTestUser")
+                .email("newTestMail@mail.com")
+                .password(passwordEncoder.encode("newPassword"))
+                .address(account.getAddress().toBuilder().postalCode("M2M2M2").build())
+                .role(Role.ROLE_STAFF)
+                .build();
+
+        given(accountRepository.findByUsername(account1.getUsername())).willReturn(List.of());
+        given(accountRepository.findByEmail(account1.getEmail())).willReturn(List.of());
+        given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of(account));
+
+        // when
+        Account account2 = accountService.updateAccount(account1.toDto());
+
+        // then
+        assertThat(account2).isEqualTo(account1);
+    }
+
+    @Test
+    @DisplayName("Unchanged updateAccount - using Context")
+    public void test_successful_updateAccount_context_noneChanged () {
+        // given
+        given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of(account));
+
+        // when
+        Account account1 = accountService.updateAccount(account.toDto());
+
+        // then
+        assertThat(account1).isEqualTo(account);
+    }
 
 
 

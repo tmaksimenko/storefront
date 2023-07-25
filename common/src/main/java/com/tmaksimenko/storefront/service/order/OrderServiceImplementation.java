@@ -29,7 +29,7 @@ import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 @Service
 @Transactional
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class OrderServiceImpl implements OrderService {
+public class OrderServiceImplementation implements OrderService {
 
     final OrderRepository orderRepository;
 

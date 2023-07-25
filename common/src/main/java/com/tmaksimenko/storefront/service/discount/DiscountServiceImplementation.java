@@ -21,7 +21,7 @@ import java.util.Optional;
 @Service
 @Transactional
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class DiscountServiceImpl implements DiscountService{
+public class DiscountServiceImplementation implements DiscountService{
 
     final GeneralDiscountRepository generalDiscountRepository;
     final ProductDiscountRepository productDiscountRepository;

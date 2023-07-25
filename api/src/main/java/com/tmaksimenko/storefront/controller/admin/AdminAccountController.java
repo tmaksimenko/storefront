@@ -2,6 +2,7 @@ package com.tmaksimenko.storefront.controller.admin;
 
 import com.tmaksimenko.storefront.dto.account.AccountCreateDto;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
+import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.model.account.Account;
@@ -25,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -86,6 +88,11 @@ public class AdminAccountController {
     @PostMapping("/add")
     public ResponseEntity<AccountFullDto> addAccount(@RequestBody AccountCreateDto accountCreateDto) {
         accountCreateDto.setPassword(passwordEncoder.encode(accountCreateDto.getPassword()));
+
+        if (Arrays.stream(Role.values()).noneMatch((role) ->
+                role.equals(accountCreateDto.getRole())))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ROLE NOT FOUND");
+
         return ResponseEntity.ok(accountService.createAccount
                 (accountCreateDto.toFullDto(
                         SecurityContextHolder.getContext().getAuthentication().getName()))

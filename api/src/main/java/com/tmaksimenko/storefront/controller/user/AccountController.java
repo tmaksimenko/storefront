@@ -78,13 +78,15 @@ public class AccountController {
                             description = "JWT Token, can be generated in auth controller /auth")
             })
     @PutMapping("/update")
-    public ResponseEntity<Account> updateAccount(@RequestBody AccountDto accountDto, @RequestBody Address address) {
+    public ResponseEntity<Account> updateAccount(@RequestBody AccountDto accountDto, @RequestBody(required = false) Address address) {
+        String password = accountDto.getPassword() == null ?
+                null : passwordEncoder.encode(accountDto.getPassword());
 
         AccountFullDto accountFullDto = AccountFullDto.builder()
                 .address(address)
                 .username(accountDto.getUsername())
                 .email(accountDto.getEmail())
-                .password(passwordEncoder.encode(accountDto.getPassword())).build();
+                .password(password).build();
 
         return ResponseEntity.ok(accountService.updateAccount(accountFullDto));
     }

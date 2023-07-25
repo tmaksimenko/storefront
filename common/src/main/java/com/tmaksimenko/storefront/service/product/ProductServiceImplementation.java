@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class ProductServiceImpl implements ProductService {
+public class ProductServiceImplementation implements ProductService {
 
     final ProductRepository productRepository;
 

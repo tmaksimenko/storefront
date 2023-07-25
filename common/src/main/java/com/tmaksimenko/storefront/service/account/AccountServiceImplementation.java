@@ -1,7 +1,6 @@
 package com.tmaksimenko.storefront.service.account;
 
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
-import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.repository.AccountRepository;
@@ -14,14 +13,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @Transactional
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class AccountServiceImpl implements AccountService {
+public class AccountServiceImplementation implements AccountService {
 
     final AccountRepository accountRepository;
 
@@ -58,26 +57,24 @@ public class AccountServiceImpl implements AccountService {
         if (!accountRepository.findByUsername(accountFullDto.getUsername()).isEmpty())
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ACCOUNT ALREADY EXISTS");
 
-        if (Arrays.stream(Role.values()).noneMatch((role) ->
-                role.equals(accountFullDto.getRole())))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ROLE NOT FOUND");
-
         return accountRepository.save(accountFullDto.toNewAccount());
     }
 
     @Override
     public Account updateAccount(AccountFullDto accountFullDto) {
         Account account;
-
-        try {
-            if (ObjectUtils.isNotEmpty(accountFullDto.getUsername()))
-                account = accountRepository.findByUsername(accountFullDto.getUsername()).get(0);
-            else if (ObjectUtils.isNotEmpty(accountFullDto.getEmail()))
-                account = accountRepository.findByEmail(accountFullDto.getEmail()).get(0);
+        List<Account> tempAccountList = new ArrayList<>();
+        if (ObjectUtils.isNotEmpty(accountFullDto.getUsername()))
+            tempAccountList = accountRepository.findByUsername(accountFullDto.getUsername());
+        if (tempAccountList.size() == 1)
+            account = tempAccountList.get(0);
+        else {
+            if (ObjectUtils.isNotEmpty(accountFullDto.getEmail()))
+                tempAccountList = accountRepository.findByEmail(accountFullDto.getEmail());
+            if (tempAccountList.size() == 1)
+                account = tempAccountList.get(0);
             else
                 account = accountRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get(0);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
         }
 
         if (ObjectUtils.isNotEmpty(accountFullDto.getUsername()))
@@ -89,11 +86,9 @@ public class AccountServiceImpl implements AccountService {
         if (ObjectUtils.isNotEmpty(accountFullDto.getAddress()))
             account.setAddress(accountFullDto.getAddress());
 
-        if (! (accountFullDto.getRole().equals(account.getRole())))
-            if (Arrays.stream(Role.values()).anyMatch((role) ->
-                    role.equals(accountFullDto.getRole())))
+        if (ObjectUtils.isNotEmpty(accountFullDto.getRole()))
+            if (! (accountFullDto.getRole().equals(account.getRole())))
                 account.setRole(accountFullDto.getRole());
-            else throw new ResponseStatusException(HttpStatus.FORBIDDEN, "INVALID ROLE GIVEN");
 
         return account;
     }
