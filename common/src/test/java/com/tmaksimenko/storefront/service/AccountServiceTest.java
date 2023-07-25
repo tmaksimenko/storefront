@@ -39,11 +39,11 @@ public class AccountServiceTest {
     @Mock
     AccountRepository accountRepository;
 
-    final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
     AccountService accountService;
 
     AccountService spyAccountService;
+
+    final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     Account account;
 
