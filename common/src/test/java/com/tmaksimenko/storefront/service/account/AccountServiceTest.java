@@ -55,7 +55,7 @@ public class AccountServiceTest {
 
     @DisplayName("Test for non-empty findAll")
     @Test
-    public void test_findAll_withAccounts () {
+    public void test_successful_findAll () {
         // given
         Account account1 = account.toBuilder()
                         .id(2L)
@@ -77,7 +77,7 @@ public class AccountServiceTest {
 
     @DisplayName("Test for non-empty findAll")
     @Test
-    public void test_findAll_empty () {
+    public void test_empty_findAll () {
         // given
         given(accountRepository.findAll()).willReturn(new ArrayList<>());
 
@@ -91,7 +91,7 @@ public class AccountServiceTest {
 
     @DisplayName("Test for successful findById")
     @Test
-    public void test_SuccessfulFindById () {
+    public void test_successful_findById () {
         // given
         given(accountRepository.findById(account.getId())).willReturn(Optional.of(account));
 
@@ -105,9 +105,9 @@ public class AccountServiceTest {
 
     @DisplayName("Test for failed findById")
     @Test
-    public void test_FailedFindById () {
+    public void test_failed_findById () {
         // given
-        given(accountRepository.findById(account.getId())).willReturn(Optional.empty());
+        given(accountRepository.findById(2L)).willReturn(Optional.empty());
 
         // when
         Optional<Account> account1 = accountService.findById(account.getId());
@@ -115,8 +115,117 @@ public class AccountServiceTest {
         // then
         assertThat(account1).isEmpty();
     }
-/*
+
+    @DisplayName("Test for successful findByUsername")
     @Test
-    public void test_*/
+    public void test_successful_findByUsername () {
+        // given
+        given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of(account));
+
+        // when
+        Optional<Account> account1 = accountService.findByUsername(account.getUsername());
+
+        // then
+        assertThat(account1.isPresent());
+        assertThat(account1.get().equals(account));
+    }
+
+    @DisplayName("Test for failed findByUsername")
+    @Test
+    public void test_failed_findByUsername () {
+        // given
+        given(accountRepository.findByUsername("notTestUser")).willReturn(List.of());
+
+        // when
+        Optional<Account> account1 = accountService.findByUsername(account.getUsername());
+
+        // then
+        assertThat(account1.isEmpty());
+    }
+
+    @DisplayName("Test for successful findByEmail")
+    @Test
+    public void test_successful_findByEmail () {
+        // given
+        given(accountRepository.findByEmail(account.getEmail())).willReturn(List.of(account));
+
+        // when
+        Optional<Account> account1 = accountService.findByEmail(account.getEmail());
+
+        // then
+        assertThat(account1.isPresent());
+        assertThat(account1.get().equals(account));
+    }
+
+    @DisplayName("Test for failed findByEmail")
+    @Test
+    public void test_failed_findByEmail () {
+        // given
+        given(accountRepository.findByEmail("notTestMail@mail.com")).willReturn(List.of());
+
+        // when
+        Optional<Account> account1 = accountService.findByEmail(account.getEmail());
+
+        // then
+        assertThat(account1.isEmpty());
+    }
+
+    @DisplayName("Test for successful findByLogin with username")
+    @Test
+    public void test_successful_findByLogin_withUsername () {
+        // given
+        given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of(account));
+
+        // when
+        Optional<Account> account1 = accountService.findByLogin(account.getUsername());
+
+        // then
+        assertThat(account1.isPresent());
+        assertThat(account1.equals(account));
+    }
+
+    @DisplayName("Test for failed findByLogin with username")
+    @Test
+    public void test_failed_findByLogin_withUsername () {
+        // given
+        given(accountRepository.findByUsername("notTestUser")).willReturn(List.of());
+
+        // when
+        Optional<Account> account1 = accountService.findByLogin(account.getUsername());
+
+        // then
+        assertThat(account1.isEmpty());
+    }
+
+    @DisplayName("Test for successful findByLogin with email")
+    @Test
+    public void test_successful_findByLogin_withEmail () {
+        // given
+        given(accountRepository.findByEmail(account.getEmail())).willReturn(List.of(account));
+
+        // when
+        Optional<Account> account1 = accountService.findByLogin(account.getEmail());
+
+        // then
+        assertThat(account1.isPresent());
+        assertThat(account1.equals(account));
+    }
+
+    @DisplayName("Test for failed findByLogin with email")
+    @Test
+    public void test_failed_findByLogin_withEmail () {
+        // given
+        given(accountRepository.findByEmail("notTestMail@mail.com")).willReturn(List.of());
+
+        // when
+        Optional<Account> account1 = accountService.findByLogin(account.getEmail());
+
+        // then
+        assertThat(account1.isEmpty());
+    }
+
+
+
+
 
 }
