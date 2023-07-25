@@ -86,9 +86,10 @@ public class OrderController {
                             name = "X-Auth-Token",
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
+    @Cacheable
     @PostMapping("/submit")
-    public ResponseEntity<String> submitOrder () {
-        return orderService.cartToOrder();
+    public ResponseEntity<OrderGetDto> submitOrder () {
+        return ResponseEntity.ok(orderService.cartToOrder().toFullDto());
     }
 
     @Operation(summary = "Update order items", parameters =
@@ -97,6 +98,7 @@ public class OrderController {
                             name = "X-Auth-Token",
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
+    @Cacheable
     @PutMapping("/update")
     public ResponseEntity<String> updateOrder(@RequestParam Long id, @RequestBody Map<String, Integer> params) {
         Optional<Order> optionalOrder = orderService.findById(id);
@@ -114,8 +116,8 @@ public class OrderController {
             products = params.entrySet().stream().collect(Collectors.toMap(
                     (param) -> Long.valueOf(param.getKey()),
                     Map.Entry::getValue));
-        } catch (RuntimeException ex) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "INVALID PRODUCT ID", ex);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "INVALID PRODUCT ID", e);
         }
 
         Map<Long, Integer> currentProductIds = order.getOrderProducts().stream()
@@ -145,9 +147,9 @@ public class OrderController {
             }
         );
 
-        return new ResponseEntity<>(String.format(
+        return ResponseEntity.ok(String.format(
                 "UPDATED PRODUCTS -> %s ADDED PRODUCTS -> %s NOT FOUND -> %s",
-                updatedProductIds, addedProductIds, notFoundProductIds), HttpStatus.OK);
+                updatedProductIds, addedProductIds, notFoundProductIds));
     }
 
     @Operation(summary = "Delete order", parameters =
@@ -157,15 +159,11 @@ public class OrderController {
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/delete")
-    public ResponseEntity<String> removeOrder(@RequestParam Long id) {
+    public ResponseEntity<Order> removeOrder(@RequestParam Long id) {
         if (! accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(AccountNotFoundException::new)
                 .getOrders().contains(orderService.findById(id).orElseThrow(OrderNotFoundException::new)))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ORDER NOT YOURS");
-        try {
-            return orderService.deleteOrder(id);
-        } catch (OrderNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", e);
-        }
+        return ResponseEntity.ok(orderService.deleteOrder(id));
     }
 
 }

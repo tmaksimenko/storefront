@@ -5,10 +5,10 @@ import com.tmaksimenko.storefront.enums.payment.PaymentStatus;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
-import com.tmaksimenko.storefront.model.account.Account;
-import com.tmaksimenko.storefront.model.base.Audit;
-import com.tmaksimenko.storefront.model.account.Cart;
 import com.tmaksimenko.storefront.model.Order;
+import com.tmaksimenko.storefront.model.account.Account;
+import com.tmaksimenko.storefront.model.account.Cart;
+import com.tmaksimenko.storefront.model.base.Audit;
 import com.tmaksimenko.storefront.repository.OrderRepository;
 import com.tmaksimenko.storefront.service.account.AccountService;
 import com.tmaksimenko.storefront.service.product.ProductService;
@@ -19,7 +19,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -56,7 +55,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public ResponseEntity<String> cartToOrder () {
+    public Order cartToOrder () {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Optional<Account> optionalAccount = accountService.findByUsername(username);
         if (optionalAccount.isEmpty())
@@ -77,12 +76,11 @@ public class OrderServiceImpl implements OrderService {
                 (key, value) -> order.addProduct(
                         productService.findById(key).orElseThrow(ProductNotFoundException::new), value));
 
-        orderRepository.save(order);
-        return new ResponseEntity<>("ORDER CREATED", HttpStatus.OK);
+        return orderRepository.save(order);
     }
 
     @Override
-    public ResponseEntity<String> createOrder (CartDto cartDto, String username) {
+    public Order createOrder (CartDto cartDto, String username) {
 
         Order order = Order.builder()
                 .audit(Audit.builder().createdOn(LocalDateTime.now()).createdBy(username).build())
@@ -96,15 +94,17 @@ public class OrderServiceImpl implements OrderService {
                                 .orElseThrow(ProductNotFoundException::new),
                         x.getQuantity()));
 
-        orderRepository.save(order);
-
-        return new ResponseEntity<>("ORDER CREATED", HttpStatus.CREATED);
+        return orderRepository.save(order);
     }
 
     @Override
-    public ResponseEntity<String> deleteOrder(Long id) throws OrderNotFoundException {
-        orderRepository.deleteById(id);
-        return new ResponseEntity<>("ORDER DELETED", HttpStatus.OK);
+    public Order deleteOrder(Long id) {
+        Optional<Order> order = orderRepository.findById(id);
+        if (order.isPresent()) {
+            orderRepository.delete(order.get());
+            return order.get();
+        }
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException());
     }
 
     @Cacheable

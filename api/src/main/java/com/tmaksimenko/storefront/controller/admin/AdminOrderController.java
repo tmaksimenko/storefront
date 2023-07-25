@@ -2,7 +2,6 @@ package com.tmaksimenko.storefront.controller.admin;
 
 import com.tmaksimenko.storefront.dto.order.CartDto;
 import com.tmaksimenko.storefront.dto.order.OrderGetDto;
-import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
 import com.tmaksimenko.storefront.model.Order;
@@ -15,7 +14,9 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,8 +28,10 @@ import java.util.stream.Collectors;
 
 @Tag(name = "Administrator Utilities")
 @RestController
-@RequestMapping("/admin/orders")
 @PreAuthorize("hasRole('ADMIN')")
+@EnableCaching
+@CacheConfig(cacheNames = "orders")
+@RequestMapping("/admin/orders")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class AdminOrderController {
 
@@ -45,7 +48,7 @@ public class AdminOrderController {
     public ResponseEntity<List<OrderGetDto>> viewAll() {
         List<Order> orders = orderService.findAll();
         List<OrderGetDto> orderGetDtos = orders.stream().map(Order::toFullDto).toList();
-        return new ResponseEntity<>(orderGetDtos, HttpStatus.OK);
+        return ResponseEntity.ok(orderGetDtos);
     }
 
     @Operation(summary = "View a specific order", parameters = {
@@ -58,9 +61,8 @@ public class AdminOrderController {
     @GetMapping("/view")
     public ResponseEntity<OrderGetDto> viewOrderDetails(@RequestParam Long id) {
         Optional<Order> optionalOrder = orderService.findById(id);
-
         if (optionalOrder.isPresent())
-            return new ResponseEntity<>(optionalOrder.get().toFullDto(), HttpStatus.OK);
+            return ResponseEntity.ok(optionalOrder.get().toFullDto());
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException());
     }
 
@@ -71,15 +73,10 @@ public class AdminOrderController {
                             name = "X-Auth-Token",
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
+    @Cacheable("orders")
     @PostMapping("/create")
-    public ResponseEntity<String> createOrder(@RequestParam String username, @RequestBody CartDto cartDto) {
-        try {
-            return orderService.createOrder(cartDto, username);
-            } catch (AccountNotFoundException e) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", e);
-            } catch (ProductNotFoundException e) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "PRODUCT NOT FOUND", e);
-        }
+    public ResponseEntity<OrderGetDto> createOrder(@RequestParam String username, @RequestBody CartDto cartDto) {
+        return ResponseEntity.ok(orderService.createOrder(cartDto, username).toFullDto());
     }
 
     @Operation(summary = "Update order items", parameters =
@@ -88,6 +85,7 @@ public class AdminOrderController {
                             name = "X-Auth-Token",
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
+    @Cacheable("orders")
     @PutMapping("/update")
     public ResponseEntity<String> updateOrder(@RequestParam Long id, @RequestBody Map<String, Integer> params) {
         Optional<Order> optionalOrder = orderService.findById(id);
@@ -132,9 +130,9 @@ public class AdminOrderController {
                 }
         );
 
-        return new ResponseEntity<>(String.format(
+        return ResponseEntity.ok(String.format(
                 "UPDATED PRODUCTS -> %s ADDED PRODUCTS -> %s NOT FOUND -> %s",
-                updatedProductIds, addedProductIds, notFoundProductIds), HttpStatus.OK);
+                updatedProductIds, addedProductIds, notFoundProductIds));
     }
 
     @Operation(summary = "Delete an order", parameters =
@@ -144,12 +142,8 @@ public class AdminOrderController {
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/delete")
-    public ResponseEntity<String> removeOrder(@RequestParam Long id) {
-        try {
-            return orderService.deleteOrder(id);
-        } catch (OrderNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", e);
-        }
+    public ResponseEntity<Order> removeOrder(@RequestParam Long id) {
+        return ResponseEntity.ok(orderService.deleteOrder(id));
     }
 }
 
