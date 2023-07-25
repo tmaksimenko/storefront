@@ -1,4 +1,4 @@
-package com.tmaksimenko.storefront.service.account;
+package com.tmaksimenko.storefront.service;
 
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
@@ -6,6 +6,8 @@ import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.account.Address;
 import com.tmaksimenko.storefront.model.base.Audit;
 import com.tmaksimenko.storefront.repository.AccountRepository;
+import com.tmaksimenko.storefront.service.account.AccountService;
+import com.tmaksimenko.storefront.service.account.AccountServiceImplementation;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.Assertions;
