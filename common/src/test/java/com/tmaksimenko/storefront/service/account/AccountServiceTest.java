@@ -257,7 +257,7 @@ public class AccountServiceTest {
 
     @Test
     @DisplayName("Changed updateAccount - using username")
-    public void test_successful_updateAccount_username_allChanged () {
+    public void test_updateAccount_username_allChanged () {
         // given
         Account account1 = account.toBuilder()
                 .email("newTestMail@mail.com")
@@ -276,7 +276,7 @@ public class AccountServiceTest {
 
     @Test
     @DisplayName("Unchanged updateAccount - using username")
-    public void test_successful_updateAccount_username_noneChanged () {
+    public void test_updateAccount_username_noneChanged () {
         // given
         given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of(account));
 
@@ -289,7 +289,7 @@ public class AccountServiceTest {
 
     @Test
     @DisplayName("Changed updateAccount - using email")
-    public void test_successful_updateAccount_email_allChanged () {
+    public void test_updateAccount_email_allChanged () {
         // given
         Account account1 = account.toBuilder()
                 .username("newTestUser")
@@ -308,7 +308,7 @@ public class AccountServiceTest {
 
     @Test
     @DisplayName("Unchanged updateAccount - using email")
-    public void test_successful_updateAccount_email_noneChanged () {
+    public void test_updateAccount_email_noneChanged () {
         // given
         given(accountRepository.findByEmail(account.getEmail())).willReturn(List.of(account));
 
@@ -321,7 +321,7 @@ public class AccountServiceTest {
 
     @Test
     @DisplayName("Changed updateAccount - using Context")
-    public void test_successful_updateAccount_context_allChanged () {
+    public void test_updateAccount_context_allChanged () {
         // given
         Account account1 = account.toBuilder()
                 .username("newTestUser")
@@ -344,7 +344,7 @@ public class AccountServiceTest {
 
     @Test
     @DisplayName("Unchanged updateAccount - using Context")
-    public void test_successful_updateAccount_context_noneChanged () {
+    public void test_updateAccount_context_noneChanged () {
         // given
         given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of(account));
 
