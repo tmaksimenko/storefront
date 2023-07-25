@@ -57,8 +57,8 @@ public class AdminProductController {
                             description = "JWT Token, can be generated in auth controller /auth"))
     @Cacheable
     @PostMapping("/add")
-    public ResponseEntity<String> createProduct (@RequestBody ProductCreateDto productCreateDto) {
-        return productService.createProduct(productCreateDto);
+    public ResponseEntity<Product> createProduct (@RequestBody ProductCreateDto productCreateDto) {
+        return ResponseEntity.ok(productService.createProduct(productCreateDto));
     }
 
     @Operation(summary = "Update product", parameters =
@@ -69,8 +69,8 @@ public class AdminProductController {
                             description = "JWT Token, can be generated in auth controller /auth"))
     @Cacheable
     @PutMapping("/update")
-    public ResponseEntity<String> updateProduct (@RequestParam Long id, @RequestBody ProductCreateDto productCreateDto) {
-        return productService.updateProduct(id, productCreateDto);
+    public ResponseEntity<Product> updateProduct (@RequestParam Long id, @RequestBody ProductCreateDto productCreateDto) {
+        return ResponseEntity.ok(productService.updateProduct(id, productCreateDto));
     }
 
     @Operation(summary = "Delete product", parameters =
@@ -80,8 +80,8 @@ public class AdminProductController {
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteProduct (@RequestParam long id) {
-        return productService.deleteProduct(id);
+    public ResponseEntity<Product> deleteProduct (@RequestParam long id) {
+        return ResponseEntity.ok(productService.deleteProduct(id));
     }
 
     @Scheduled(fixedRate = 1800000)
