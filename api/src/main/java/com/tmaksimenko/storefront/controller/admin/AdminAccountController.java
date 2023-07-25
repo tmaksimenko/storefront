@@ -99,16 +99,8 @@ public class AdminAccountController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/update")
     @SuppressWarnings("all")
-    public ResponseEntity<String> updateAccount(@RequestBody AccountFullDto accountFullDto) {
-        Optional<Account> oldAccount = accountService.findByUsername(accountFullDto.getUsername());
-
-        if (oldAccount.isEmpty())
-            oldAccount = accountService.findByEmail(accountFullDto.getEmail());
-
-        if (oldAccount.isPresent())
-            return accountService.updateAccount(oldAccount.get(), accountFullDto);
-
-        return new ResponseEntity<>("ACCOUNT NOT FOUND", HttpStatus.NOT_FOUND);
+    public ResponseEntity<Account> updateAccount(@RequestBody AccountFullDto accountFullDto) {
+        return ResponseEntity.ok(accountService.updateAccount(accountFullDto));
     }
 
     @Operation(summary = "Delete an account", parameters =
@@ -118,8 +110,8 @@ public class AdminAccountController {
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteAccount(@RequestParam String login) {
-        return accountService.deleteAccount(login);
+    public ResponseEntity<Account> deleteAccount(@RequestParam String login) {
+        return ResponseEntity.ok(accountService.deleteAccount(login));
     }
 
 }

@@ -3,9 +3,9 @@ package com.tmaksimenko.storefront.controller.user;
 import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
+import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.account.Address;
-import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.service.account.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,8 +21,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.Optional;
 
 @Tag(name = "User Operations")
 @RestController
@@ -76,12 +74,7 @@ public class AccountController {
                             description = "JWT Token, can be generated in auth controller /auth")
             })
     @PutMapping("/update")
-    public ResponseEntity<String> updateAccount(@RequestBody AccountDto accountDto, @RequestBody Address address) {
-        Optional<Account> oldAccount = accountService.findByUsername(SecurityContextHolder
-                .getContext().getAuthentication().getName());
-
-        if (oldAccount.isEmpty())
-            return new ResponseEntity<>("ACCOUNT NOT FOUND", HttpStatus.NOT_FOUND);
+    public ResponseEntity<Account> updateAccount(@RequestBody AccountDto accountDto, @RequestBody Address address) {
 
         AccountFullDto accountFullDto = AccountFullDto.builder()
                 .address(address)
@@ -89,8 +82,7 @@ public class AccountController {
                 .email(accountDto.getEmail())
                 .password(passwordEncoder.encode(accountDto.getPassword())).build();
 
-        return accountService.updateAccount(oldAccount.get(), accountFullDto);
-
+        return ResponseEntity.ok(accountService.updateAccount(accountFullDto));
     }
 
     @Operation(
@@ -103,8 +95,8 @@ public class AccountController {
                             description = "JWT Token, can be generated in auth controller /auth")
             })
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteAccount() {
-        return accountService.deleteAccount(SecurityContextHolder.getContext().getAuthentication().getName());
+    public ResponseEntity<Account> deleteAccount() {
+        return ResponseEntity.ok(accountService.deleteAccount(SecurityContextHolder.getContext().getAuthentication().getName()));
     }
 
 }

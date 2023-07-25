@@ -2,7 +2,6 @@ package com.tmaksimenko.storefront.service.account;
 
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
 import com.tmaksimenko.storefront.model.account.Account;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,12 +21,11 @@ public interface AccountService {
 
     Account createAccount(AccountFullDto accountFullDto);
 
-    ResponseEntity<String> updateAccount(Account oldAccount, AccountFullDto accountFullDto);
+    Account updateAccount(AccountFullDto accountFullDto);
 
     @SuppressWarnings("unused")
-    ResponseEntity<String> deleteAccount(Long id);
+    Account deleteAccount(Long id);
 
-    @SuppressWarnings("unused")
-    ResponseEntity<String> deleteAccount(String login);
+    Account deleteAccount(String login);
 
 }
