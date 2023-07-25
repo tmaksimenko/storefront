@@ -89,7 +89,7 @@ public class AccountServiceTest {
 
     @Test
     @DisplayName("Empty findAll")
-    public void test_empty_findAll () {
+    public void test_failed_findAll () {
         // given
         given(accountRepository.findAll()).willReturn(new ArrayList<>());
 
