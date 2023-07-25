@@ -72,7 +72,7 @@ public class DiscountServiceTest {
         List<? super Discount> discounts = discountService.findAllDiscounts();
 
         // then
-        assertThat(discounts).contains(generalDiscount).contains(productDiscount);
+        assertThat(discounts).isNotEmpty().contains(generalDiscount).contains(productDiscount);
     }
 
     @Test
@@ -119,13 +119,42 @@ public class DiscountServiceTest {
     @Test
     @DisplayName("Failed findById - not found")
     public void test_failed_findById () {
-        Long badId = 3L;
         // given
+        Long badId = 3L;
         given(generalDiscountRepository.findById(badId)).willReturn(Optional.empty());
         given(productDiscountRepository.findById(badId)).willReturn(Optional.empty());
 
         // when
         Optional<? extends Discount> discount = discountService.findById(badId);
+
+        // then
+        assertThat(discount).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Successful findByRole")
+    public void test_successful_findByRole () {
+        // given
+        given(generalDiscountRepository.findByRole(generalDiscount.getRole().name()))
+                .willReturn(List.of(generalDiscount));
+
+        // when
+        List<GeneralDiscount> discount = discountService.findByRole(generalDiscount.getRole());
+
+        // then
+        assertThat(discount).isNotEmpty().contains(generalDiscount);
+    }
+
+    @Test
+    @DisplayName("Failed findByRole")
+    public void test_failed_findByRole () {
+        // given
+        Role badRole = Role.ROLE_USER;
+        given(generalDiscountRepository.findByRole(badRole.name()))
+                .willReturn(List.of());
+
+        // when
+        List<GeneralDiscount> discount = discountService.findByRole(badRole);
 
         // then
         assertThat(discount).isEmpty();
