@@ -3,8 +3,8 @@ package com.tmaksimenko.storefront.controller.admin;
 import com.tmaksimenko.storefront.dto.account.AccountCreateDto;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
-import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.Order;
+import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.service.account.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,8 +12,13 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +31,8 @@ import java.util.Optional;
 @Tag(name = "Administrator Utilities")
 @RestController
 @PreAuthorize("hasRole('ADMIN')")
+@EnableCaching
+@CacheConfig(cacheNames = "accounts")
 @RequestMapping("/admin/accounts")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class AdminAccountController {
@@ -48,8 +55,8 @@ public class AdminAccountController {
                         .email(x.getEmail())
                         .orderGetDtos(x.getOrders().stream().map(Order::toPlainDto).toList())
                         .build())
-        ).toList();
-        return new ResponseEntity<>(accountFullDtos, HttpStatus.OK);
+            ).toList();
+        return ResponseEntity.ok(accountFullDtos);
     }
 
     @Operation(summary = "View individual account", parameters =
@@ -58,6 +65,7 @@ public class AdminAccountController {
                             name = "X-Auth-Token",
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
+    @Cacheable
     @GetMapping("/view")
     public ResponseEntity<AccountFullDto> viewAccountDetails(@RequestParam String login) {
         Optional<Account> optionalAccount = accountService.findByLogin(login);
@@ -65,17 +73,7 @@ public class AdminAccountController {
         if (optionalAccount.isEmpty())
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
 
-        AccountFullDto accountFullDto = AccountFullDto.builder()
-                .username(optionalAccount.get().getUsername())
-                .email(optionalAccount.get().getEmail())
-                .address(optionalAccount.get().getAddress())
-                .role(optionalAccount.get().getRole())
-                .audit(optionalAccount.get().getAudit())
-                .cart(optionalAccount.get().getCart())
-                .orderGetDtos(optionalAccount.get().getOrders().stream().map(Order::toPlainDto).toList())
-                .build();
-
-        return new ResponseEntity<>(accountFullDto, HttpStatus.OK);
+        return ResponseEntity.ok(optionalAccount.get().toDto());
     }
 
     @Operation(summary = "Add an account", parameters =
@@ -84,10 +82,14 @@ public class AdminAccountController {
                             name = "X-Auth-Token",
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
+    @Cacheable
     @PostMapping("/add")
-    public ResponseEntity<Account> addAccount(@RequestBody AccountCreateDto accountCreateDto) {
+    public ResponseEntity<AccountFullDto> addAccount(@RequestBody AccountCreateDto accountCreateDto) {
         accountCreateDto.setPassword(passwordEncoder.encode(accountCreateDto.getPassword()));
-        return ResponseEntity.ok(accountService.createAccount(accountCreateDto.toFullDto(SecurityContextHolder.getContext().getAuthentication().getName())));
+        return ResponseEntity.ok(accountService.createAccount
+                (accountCreateDto.toFullDto(
+                        SecurityContextHolder.getContext().getAuthentication().getName()))
+                .toDto());
     }
 
     @Operation(summary = "Update an account", parameters =
@@ -96,11 +98,11 @@ public class AdminAccountController {
                             name = "X-Auth-Token",
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
-    @PreAuthorize("hasRole('ADMIN')")
+    @Cacheable
     @PutMapping("/update")
     @SuppressWarnings("all")
-    public ResponseEntity<Account> updateAccount(@RequestBody AccountFullDto accountFullDto) {
-        return ResponseEntity.ok(accountService.updateAccount(accountFullDto));
+    public ResponseEntity<AccountFullDto> updateAccount(@RequestBody AccountFullDto accountFullDto) {
+        return ResponseEntity.ok(accountService.updateAccount(accountFullDto).toDto());
     }
 
     @Operation(summary = "Delete an account", parameters =
@@ -112,6 +114,11 @@ public class AdminAccountController {
     @DeleteMapping("/delete")
     public ResponseEntity<Account> deleteAccount(@RequestParam String login) {
         return ResponseEntity.ok(accountService.deleteAccount(login));
+    }
+
+    @Scheduled(fixedRate = 1800000)
+    @CacheEvict(allEntries = true)
+    public void emptyCache () {
     }
 
 }

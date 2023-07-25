@@ -16,9 +16,13 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.ObjectUtils;
@@ -32,8 +36,10 @@ import java.util.stream.Collectors;
 
 @Tag(name = "Administrator Utilities")
 @RestController
-@RequestMapping("/admin/discounts")
 @PreAuthorize("hasRole('ADMIN')")
+@EnableCaching
+@CacheConfig(cacheNames = "discounts")
+@RequestMapping("/admin/discounts")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class AdminDiscountController {
 
@@ -67,7 +73,7 @@ public class AdminDiscountController {
                     name = "X-Auth-Token",
                     required = true,
                     description = "JWT Token, can be generated in auth controller /auth")})
-    @Cacheable("discounts")
+    @Cacheable
     @GetMapping("/view")
     public ResponseEntity<DiscountDto> viewDiscount (@RequestParam Long id) {
         Optional<? extends Discount> optionalDiscount = discountService.findById(id);
@@ -83,22 +89,26 @@ public class AdminDiscountController {
                             name = "X-Auth-Token",
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
+    @Cacheable
     @PostMapping("/add")
-    public ResponseEntity<Discount> createDiscount (DiscountCreateDto discountCreateDto) {
+    public ResponseEntity<DiscountDto> createDiscount (DiscountCreateDto discountCreateDto) {
         Audit audit = Audit.builder().createdOn(LocalDateTime.now()).createdBy(
                 SecurityContextHolder.getContext().getAuthentication().getName()).build();
+
         if (ObjectUtils.isEmpty(discountCreateDto.getProductId())) {
             GeneralDiscount discount = GeneralDiscount.builder()
                     .role(discountCreateDto.getRole())
                     .audit(audit)
                     .percent(discountCreateDto.getPercent()).build();
-            return ResponseEntity.ok(discountService.createDiscount(discount));
+            return ResponseEntity.ok(discountService.createDiscount(discount).toDto());
+
         } else try {
             ProductDiscount discount = ProductDiscount.builder()
                     .product(productService.findById(discountCreateDto.getProductId()).orElseThrow(ProductNotFoundException::new))
                     .audit(audit)
                     .percent(discountCreateDto.getPercent()).build();
-            return ResponseEntity.ok(discountService.createDiscount(discount));
+            return ResponseEntity.ok(discountService.createDiscount(discount).toDto());
+
         } catch (ProductNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "PRODUCT NOT FOUND", e);
         }
@@ -117,6 +127,11 @@ public class AdminDiscountController {
         } catch (DiscountNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Discount NOT FOUND", e);
         }
+    }
+
+    @Scheduled(fixedRate = 1800000)
+    @CacheEvict(allEntries = true)
+    public void emptyCache () {
     }
 }
 
