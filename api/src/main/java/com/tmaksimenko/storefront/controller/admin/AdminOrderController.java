@@ -15,10 +15,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -144,6 +146,11 @@ public class AdminOrderController {
     @DeleteMapping("/delete")
     public ResponseEntity<Order> removeOrder(@RequestParam Long id) {
         return ResponseEntity.ok(orderService.deleteOrder(id));
+    }
+
+    @Scheduled(fixedRate = 1800000)
+    @CacheEvict(allEntries = true)
+    public void emptyCache () {
     }
 }
 

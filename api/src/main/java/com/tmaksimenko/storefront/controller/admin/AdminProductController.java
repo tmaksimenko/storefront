@@ -10,10 +10,13 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,9 +24,10 @@ import java.util.List;
 
 @Tag(name = "Administrator Utilities")
 @RestController
-@RequestMapping("/admin/products")
 @PreAuthorize("hasRole('ADMIN')")
 @EnableCaching
+@CacheConfig(cacheNames = "products")
+@RequestMapping("/admin/products")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class AdminProductController {
 
@@ -39,6 +43,7 @@ public class AdminProductController {
     }
 
     @Operation(summary = "Fetch individual product")
+    @Cacheable
     @GetMapping("/view")
     public ResponseEntity<Product> viewProduct (@RequestParam Long id) {
         return ResponseEntity.of(productService.findById(id));
@@ -50,6 +55,7 @@ public class AdminProductController {
                             name = "X-Auth-Token",
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
+    @Cacheable
     @PostMapping("/add")
     public ResponseEntity<String> createProduct (@RequestBody ProductCreateDto productCreateDto) {
         return productService.createProduct(productCreateDto);
@@ -61,6 +67,7 @@ public class AdminProductController {
                             name = "X-Auth-Token",
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
+    @Cacheable
     @PutMapping("/update")
     public ResponseEntity<String> updateProduct (@RequestParam Long id, @RequestBody ProductCreateDto productCreateDto) {
         return productService.updateProduct(id, productCreateDto);
@@ -75,6 +82,11 @@ public class AdminProductController {
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteProduct (@RequestParam long id) {
         return productService.deleteProduct(id);
+    }
+
+    @Scheduled(fixedRate = 1800000)
+    @CacheEvict(allEntries = true)
+    public void emptyCache () {
     }
 
 }

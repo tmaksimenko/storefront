@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.HttpStatus;
@@ -27,8 +28,9 @@ import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 
 @Tag(name = "User Operations")
 @RestController
-@RequestMapping("/products")
 @EnableCaching
+@CacheConfig(cacheNames = "products")
+@RequestMapping("/products")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ProductController {
 
