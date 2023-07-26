@@ -54,11 +54,6 @@ public class Order extends BaseEntity {
         }
     }
 
-    @SuppressWarnings("unused")
-    public void clear () {
-        orderProducts.clear();
-    }
-
     public OrderGetDto toPlainDto() {
          return OrderGetDto.builder()
                 .id(this.getId())
