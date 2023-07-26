@@ -36,14 +36,14 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 public class AccountServiceTest {
 
+    final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     @Mock
     AccountRepository accountRepository;
 
     AccountService accountService;
 
     AccountService spyAccountService;
-
-    final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     Account account;
 
