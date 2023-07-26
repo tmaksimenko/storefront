@@ -2,6 +2,7 @@ package com.tmaksimenko.storefront.controller.admin;
 
 import com.tmaksimenko.storefront.dto.discount.DiscountCreateDto;
 import com.tmaksimenko.storefront.dto.discount.DiscountDto;
+import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.exception.DiscountNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
 import com.tmaksimenko.storefront.model.base.Audit;
@@ -97,7 +98,7 @@ public class AdminDiscountController {
 
         if (ObjectUtils.isEmpty(discountCreateDto.getProductId())) {
             GeneralDiscount discount = GeneralDiscount.builder()
-                    .role(discountCreateDto.getRole())
+                    .role(Role.valueOf(discountCreateDto.getRole()))
                     .audit(audit)
                     .percent(discountCreateDto.getPercent()).build();
             return ResponseEntity.ok(discountService.createDiscount(discount).toDto());

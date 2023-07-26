@@ -1,7 +1,6 @@
 package com.tmaksimenko.storefront.model.account;
 
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
-import com.tmaksimenko.storefront.dto.order.OrderGetDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.model.base.BaseEntity;
@@ -12,7 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -42,12 +40,7 @@ public class Account extends BaseEntity {
     @OneToMany(mappedBy = "account")
     Set<Order> orders;
 
-    @Transient
     public AccountFullDto toDto () {
-        List<OrderGetDto> orderGetDtos = null;
-        if (this.getOrders() != null)
-            orderGetDtos = this.getOrders().stream().map(Order::toPlainDto).toList();
-
         return AccountFullDto.builder()
                 .username(this.getUsername())
                 .email(this.getEmail())
@@ -55,8 +48,6 @@ public class Account extends BaseEntity {
                 .address(this.getAddress())
                 .role(this.getRole())
                 .audit(this.getAudit())
-                .cart(this.getCart())
-                .orderGetDtos(orderGetDtos)
                 .build();
     }
 
