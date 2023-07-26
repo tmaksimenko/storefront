@@ -27,7 +27,7 @@ public class AuthController {
 
     final JwtUtils jwtUtils;
 
-    final UserDetailsService accountDetailsService;
+    final UserDetailsService userDetailsService;
 
     @PostMapping
     public ResponseEntity<AuthResponse> loginUser(@RequestBody AuthRequest request) {
@@ -36,11 +36,10 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(request.getLogin(), request.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authenticate);
 
-        return ResponseEntity.ok(
-                AuthResponse.builder()
+        return ResponseEntity.ok(AuthResponse.builder()
                 .login(request.getLogin())
                 .token(jwtUtils.generateToken(
-                                accountDetailsService.loadUserByUsername(request.getLogin())))
+                                userDetailsService.loadUserByUsername(request.getLogin())))
                 .build());
     }
 
