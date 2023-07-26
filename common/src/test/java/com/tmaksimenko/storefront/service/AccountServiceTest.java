@@ -10,7 +10,6 @@ import com.tmaksimenko.storefront.service.account.AccountService;
 import com.tmaksimenko.storefront.service.account.AccountServiceImplementation;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -253,7 +253,7 @@ public class AccountServiceTest {
         given(accountRepository.findByUsername(account.getUsername())).willReturn(List.of(account));
 
         // when
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class,
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
                 () -> accountService.createAccount(account.toDto()));
 
         // then
@@ -412,7 +412,7 @@ public class AccountServiceTest {
         given(accountRepository.findById(account.getId())).willReturn(Optional.empty());
 
         // when
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class,
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
                 () -> spyAccountService.deleteAccount(account.getId()));
 
         // then
@@ -427,7 +427,7 @@ public class AccountServiceTest {
         given(spyAccountService.findByLogin(account.getUsername())).willReturn(Optional.empty());
 
         // when
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class,
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
                 () -> spyAccountService.deleteAccount(account.getUsername()));
 
         // then
@@ -442,7 +442,7 @@ public class AccountServiceTest {
         given(spyAccountService.findByLogin(account.getEmail())).willReturn(Optional.empty());
 
         // when
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class,
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
                 () -> spyAccountService.deleteAccount(account.getEmail()));
 
         // then
