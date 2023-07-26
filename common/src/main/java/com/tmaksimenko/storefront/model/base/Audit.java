@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 
@@ -29,21 +28,13 @@ public class Audit {
     @PrePersist
     public void prePersist() {
         createdOn = LocalDateTime.now();
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails)
-            createdBy = ((UserDetails)principal).getUsername();
-        else
-            createdBy = principal.toString();
+        createdBy = SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
     @PreUpdate
     public void preUpdate() {
         updatedOn = LocalDateTime.now();
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails)
-            updatedBy = ((UserDetails)principal).getUsername();
-        else
-            updatedBy = principal.toString();
+        updatedBy = SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
     public Audit (String createdBy) {
