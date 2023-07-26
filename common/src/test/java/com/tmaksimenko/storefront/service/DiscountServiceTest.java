@@ -16,14 +16,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @ExtendWith(MockitoExtension.class)
@@ -160,5 +165,114 @@ public class DiscountServiceTest {
         assertThat(discount).isEmpty();
     }
 
+    @Test
+    @DisplayName("Successful findByProductId")
+    public void test_successful_findByProductId () {
+        // given
+        given(productDiscountRepository.findByProductId(productDiscount.getProduct().getId()))
+                .willReturn(Optional.of(productDiscount));
+
+        // when
+        Optional<ProductDiscount> discount = discountService.findByProductId(productDiscount.getProduct().getId());
+
+        // then
+        assertThat(discount).isNotEmpty().contains(productDiscount);
+    }
+
+    @Test
+    @DisplayName("Failed findByProductId")
+    public void test_failed_findByProductId () {
+        // given
+        given(productDiscountRepository.findByProductId(productDiscount.getProduct().getId()))
+                .willReturn(Optional.empty());
+
+        // when
+        Optional<ProductDiscount> discount = discountService.findByProductId(productDiscount.getProduct().getId());
+
+        // then
+        assertThat(discount).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Successful createDiscount - general")
+    public void test_createGeneralDiscount () {
+        // given
+        given(generalDiscountRepository.save(generalDiscount))
+                .willReturn(generalDiscount);
+
+        // when
+        GeneralDiscount discount = discountService.createDiscount(generalDiscount);
+
+        // then
+        ArgumentCaptor<GeneralDiscount> captor = ArgumentCaptor.forClass(GeneralDiscount.class);
+        verify(generalDiscountRepository).save(captor.capture());
+        assertThat(discount).isSameAs(captor.getValue()).isSameAs(generalDiscount);
+    }
+
+    @Test
+    @DisplayName("Successful createDiscount - product")
+    public void test_createProductDiscount () {
+        // given
+        given(productDiscountRepository.save(productDiscount))
+                .willReturn(productDiscount);
+
+        // when
+        ProductDiscount discount = discountService.createDiscount(productDiscount);
+
+        // then
+        ArgumentCaptor<ProductDiscount> captor = ArgumentCaptor.forClass(ProductDiscount.class);
+        verify(productDiscountRepository).save(captor.capture());
+        assertThat(discount).isSameAs(captor.getValue()).isSameAs(productDiscount);
+    }
+
+    @Test
+    @DisplayName("Successful deleteDiscount - general")
+    public void test_deleteGeneralDiscount () {
+        // given
+        given(generalDiscountRepository.findById(generalDiscount.getId())).willReturn(Optional.of(generalDiscount));
+        doNothing().when(generalDiscountRepository).delete(generalDiscount);
+
+        // when
+        Discount discount = discountService.deleteDiscount(generalDiscount.getId());
+
+        // then
+        ArgumentCaptor<GeneralDiscount> captor = ArgumentCaptor.forClass(GeneralDiscount.class);
+        verify(generalDiscountRepository).delete(captor.capture());
+        assertThat(discount).isSameAs(captor.getValue()).isSameAs(generalDiscount);
+    }
+
+    @Test
+    @DisplayName("Successful deleteDiscount - product")
+    public void test_deleteProductDiscount () {
+        // given
+        given(generalDiscountRepository.findById(productDiscount.getId())).willReturn(Optional.empty());
+        given(productDiscountRepository.findById(productDiscount.getId())).willReturn(Optional.of(productDiscount));
+        doNothing().when(productDiscountRepository).delete(productDiscount);
+
+        // when
+        Discount discount = discountService.deleteDiscount(productDiscount.getId());
+
+        // then
+        ArgumentCaptor<ProductDiscount> captor = ArgumentCaptor.forClass(ProductDiscount.class);
+        verify(productDiscountRepository).delete(captor.capture());
+        assertThat(discount).isSameAs(captor.getValue()).isSameAs(productDiscount);
+    }
+
+
+    @Test
+    @DisplayName("Failed deleteDiscount")
+    public void test_failed_deleteDiscount () {
+        // given
+        Long badId = 3L;
+        given(generalDiscountRepository.findById(badId)).willReturn(Optional.empty());
+        given(productDiscountRepository.findById(badId)).willReturn(Optional.empty());
+
+        // when
+        Exception exception = assertThrows(ResponseStatusException.class, () ->
+                discountService.deleteDiscount(badId));
+
+        // then
+        assertThat(exception).hasMessageContaining("DISCOUNT NOT FOUND");
+    }
 
 }
