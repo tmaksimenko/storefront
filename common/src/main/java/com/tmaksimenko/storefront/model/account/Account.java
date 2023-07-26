@@ -9,6 +9,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.util.List;
@@ -19,7 +20,8 @@ import java.util.Set;
 @Data
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = "orders")
+@ToString(exclude = {"orders", "cart"})
+@EqualsAndHashCode(exclude = {"orders", "cart"})
 public class Account extends BaseEntity {
 
     String username;

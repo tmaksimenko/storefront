@@ -6,10 +6,7 @@ import com.tmaksimenko.storefront.model.base.BaseEntity;
 import com.tmaksimenko.storefront.model.orderProduct.OrderProduct;
 import com.tmaksimenko.storefront.model.payment.Payment;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.util.HashSet;
@@ -19,8 +16,9 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name="orders")
 @Data
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 @NoArgsConstructor
+@ToString(exclude = "orderProducts")
 @EqualsAndHashCode(exclude = "orderProducts")
 public class Order extends BaseEntity {
 
