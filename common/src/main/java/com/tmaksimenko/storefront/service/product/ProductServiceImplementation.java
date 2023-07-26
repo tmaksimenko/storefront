@@ -69,11 +69,12 @@ public class ProductServiceImplementation implements ProductService {
             Product product = this.findById(x.getProductId()).orElseThrow(ProductNotFoundException::new);
             Optional<ProductDiscount> discount = discountService.findByProductId(x.getProductId());
             if (discount.isEmpty())
-                return product.getPrice() * ((double) x.getQuantity()) + product.getWeight() * 0.1;
+                return (product.getPrice() * ((double) x.getQuantity()) + product.getWeight() * 0.1)
+                        * ((100.0 - personalDiscount.getPercent())/100.0);
             return ((product.getPrice() * ((double) x.getQuantity())
-                    * (100.0 - discountService.findByProductId(x.getProductId()).get().getPercent()))
+                    * ((100.0 - discountService.findByProductId(x.getProductId()).get().getPercent())/100.0))
                     + product.getWeight() * 0.1)
-                    * (100.0 - personalDiscount.getPercent());
+                    * ((100.0 - personalDiscount.getPercent())/100.0);
         }).sum();
 
 

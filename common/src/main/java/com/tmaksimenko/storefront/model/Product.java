@@ -13,7 +13,7 @@ import java.util.Set;
 @Entity
 @Table(name="products")
 @Data
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(exclude = "orderProducts")
