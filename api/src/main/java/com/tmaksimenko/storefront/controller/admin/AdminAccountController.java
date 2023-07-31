@@ -4,7 +4,6 @@ import com.tmaksimenko.storefront.dto.account.AccountCreateDto;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
-import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.service.account.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,7 +54,7 @@ public class AdminAccountController {
                 x -> (AccountFullDto)(AccountFullDto.builder()
                         .username(x.getUsername())
                         .email(x.getEmail())
-                        .orderGetDtos(x.getOrders().stream().map(Order::toPlainDto).toList())
+                        .role(x.getRole())
                         .build())
             ).toList();
         return ResponseEntity.ok(accountFullDtos);
