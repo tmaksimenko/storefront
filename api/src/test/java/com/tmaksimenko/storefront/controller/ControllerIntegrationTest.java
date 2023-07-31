@@ -67,11 +67,24 @@ public class ControllerIntegrationTest {
     }
 
     @Test
+    @DisplayName("Successful authentication")
+    public void test_successful_authentication () {
+        Map<String, String> authRequestMap = new HashMap<>();
+        authRequestMap.put("login", "badUserName");
+        authRequestMap.put("password", "password");
+        String response = this.restTemplate.postForObject("http://localhost:" + port + "/auth",
+                authRequestMap , String.class);
+        System.out.println(response);
+        assertThat(response).contains("\"status\":404").contains("\"error\":\"Not Found\"");
+    }
+
+
+    @Test
     @DisplayName("Successful registration, authentication and get accounts/all")
     public void test_successful_register_andAuthenticateAsAdmin_andGetAllAccounts () throws JSONException {
         Map<String, String> authRequestMap = new HashMap<>();
         authRequestMap.put("login", adminDto.getUsername());
-        authRequestMap.put("password", adminDto.getPassword());
+        authRequestMap.put("password", "password");
 
         assertThat(this.restTemplate.postForObject("http://localhost:" + port + "/register", accountDto, Account.class))
                 .isInstanceOf(Account.class)
@@ -102,13 +115,7 @@ public class ControllerIntegrationTest {
                 .containsExactly(accountDto.getUsername(), accountDto.getEmail(), Role.ROLE_USER.name());
     }
 
-    @Test
-    @DisplayName("Successful addAccount - anonymous")
-    public void test_successful_addAccount_anonymous () {
-        // given
-//        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("testUser", ));
 
-    }
 
 
 }
