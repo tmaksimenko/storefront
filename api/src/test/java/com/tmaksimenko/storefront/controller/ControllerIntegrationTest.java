@@ -81,10 +81,13 @@ public class ControllerIntegrationTest {
         });
     }
 
-    /*@BeforeEach
-    public void setup() {
+    private String status (int code) {
+        return String.format("\"status\":%s", code);
+    }
 
-    }*/
+    private String error (String message) {
+        return String.format("\"error\":\"%s\"", message);
+    }
 
     @Test
     @DisplayName("Successful authentication")
@@ -106,7 +109,7 @@ public class ControllerIntegrationTest {
 
     @Test
     @DisplayName("Failed authentication (not found)")
-    public void test_failed_authentication () {
+    public void test_failed_authentication_notFound () {
         // given
         Map<String, String> authRequestMap = new HashMap<>();
         authRequestMap.put("login", "badUserName");
@@ -117,20 +120,23 @@ public class ControllerIntegrationTest {
                 authRequestMap , String.class);
 
         // then
-        assertThat(response).contains("\"status\":404").contains("\"error\":\"Not Found\"");
+        assertThat(response).contains(status(404)).contains(error("Not Found"));
     }
 
     @Test
-    @DisplayName("Failed authentication (not found)")
-    public void test_failed_authentication_password () throws ResourceAccessException {
+    @DisplayName("Failed authentication (bad password)")
+    public void test_failed_authentication_badPassword () throws ResourceAccessException {
+        // given
         Map<String, String> authRequestMap = new HashMap<>();
         authRequestMap.put("login", adminDto.getUsername());
         authRequestMap.put("password", "badPassword");
 
+        // when
         String response = this.restTemplate.postForObject("http://localhost:" + port + "/auth",
                 authRequestMap , String.class);
 
-        assertThat(response).contains("\"status\":401").contains("\"error\":\"Unauthorized\"");
+        // then
+        assertThat(response).contains(status(401)).contains(error("Unauthorized"));
     }
 
 
