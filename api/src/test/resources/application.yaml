@@ -1,3 +1,4 @@
+#file: noinspection SpellCheckingInspection
 logging.level:
   org.springframework.security: trace
 
@@ -12,3 +13,7 @@ spring:
       ddl-auto: create
     generate-ddl: true
     show-sql: true
+
+jwt:
+  secret: Cl2lChwkRn2FU4QusyV/rNTQzTlA/SdJ84GvCn9HK0lix9TSx0BDl7NoDl0gMc5aJFIjego1gCsbdUcA6RnmSTYkMJwS5lIfWRmMs3OpxNtEFOSEAHPXPiNn7pXylhMgudGk8s6ovdGKQLT4GiVpbRbY5wEVz4VnnzdMhaFN2EfouI6Lp29YzV3y7z5dbjLm3StZNzfg4dQ9+JzvjpPbuukcZwlUIVUShIYVEjojHBFFt0m5IQsGRHVvvUGK3uI8RvRDE0lATv92pNYHwXpsGKKmm0xeVTC5zbza7bPgqOme3ELDUlsVC5Vncy4PKolT8NfHGDGv+TL2zy/hsRirZaNuxcEDG1AkGWp551Njgrk=
+  expiration: 1800000
