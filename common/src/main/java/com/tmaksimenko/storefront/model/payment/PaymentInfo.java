@@ -20,7 +20,7 @@ public class PaymentInfo {
     @Embedded
     ExpiryDate expiry;
 
-    int securityCode;
+    Integer securityCode;
 
     @SuppressWarnings("all") // refuses to see column card_postal_code
     @Column(name = "card_postal_code")
