@@ -45,30 +45,48 @@ public class ControllerIntegrationTest {
 
     AccountDto accountDto;
 
-    AccountFullDto adminDto;
+    AccountDto adminDto;
+
+    AccountFullDto adminFullDto;
 
     @BeforeAll
     public void setupAll () {
-        adminDto = AccountFullDto.builder()
+        adminDto = AccountDto.builder()
                 .username("testAdmin")
-                .password(passwordEncoder.encode("password"))
+                .password("password")
                 .email("adminMail@mail.com")
-                .role(Role.valueOf("ROLE_ADMIN"))
                 .build();
-        accountService.createAccount(adminDto);
+        adminFullDto = adminDto.toFullDto(Role.ROLE_ADMIN);
+        adminFullDto.setPassword(passwordEncoder.encode(adminDto.getPassword()));
+        accountService.createAccount(adminFullDto);
         accountDto = AccountDto.builder().username("testUser")
                 .password("password")
                 .email("mail@mail.com").build();
     }
 
-    @BeforeEach
+    /*@BeforeEach
     public void setup() {
 
-    }
+    }*/
 
     @Test
     @DisplayName("Successful authentication")
-    public void test_successful_authentication () {
+    public void test_successful_authentication () throws JSONException {
+        Map<String, String> authRequestMap = new HashMap<>();
+        authRequestMap.put("login", adminDto.getUsername());
+        authRequestMap.put("password", adminDto.getPassword());
+        JSONObject response = new JSONObject(this.restTemplate.postForObject("http://localhost:" + port + "/auth",
+                authRequestMap , String.class));
+
+        System.out.println(response);
+        assertThat(response.getString("login")).isEqualTo(adminDto.getUsername());
+        assertThat(response.getString("token")).isNotNull();
+        assertTrue(response.getString("token").length() > 100);
+    }
+
+    @Test
+    @DisplayName("Failed authentication (not found)")
+    public void test_failed_authentication () {
         Map<String, String> authRequestMap = new HashMap<>();
         authRequestMap.put("login", "badUserName");
         authRequestMap.put("password", "password");
@@ -84,7 +102,7 @@ public class ControllerIntegrationTest {
     public void test_successful_register_andAuthenticateAsAdmin_andGetAllAccounts () throws JSONException {
         Map<String, String> authRequestMap = new HashMap<>();
         authRequestMap.put("login", adminDto.getUsername());
-        authRequestMap.put("password", "password");
+        authRequestMap.put("password", adminDto.getPassword());
 
         assertThat(this.restTemplate.postForObject("http://localhost:" + port + "/register", accountDto, Account.class))
                 .isInstanceOf(Account.class)
@@ -110,7 +128,7 @@ public class ControllerIntegrationTest {
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0)).extracting("username", "email", "role")
-                .containsExactly(adminDto.getUsername(), adminDto.getEmail(), adminDto.getRole().name());
+                .containsExactly(adminFullDto.getUsername(), adminFullDto.getEmail(), adminFullDto.getRole().name());
         assertThat(result.get(1)).extracting("username", "email", "role")
                 .containsExactly(accountDto.getUsername(), accountDto.getEmail(), Role.ROLE_USER.name());
     }
