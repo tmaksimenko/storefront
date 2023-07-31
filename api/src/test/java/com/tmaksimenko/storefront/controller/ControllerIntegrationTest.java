@@ -90,6 +90,7 @@ public class ControllerIntegrationTest {
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Auth-Token", tokenValue);
 
+        @SuppressWarnings("all") // intentional raw use of parameterized class
         List result = this.restTemplate.exchange(
                 "http://localhost:" + port + "/admin/accounts/all", HttpMethod.GET,
                 new HttpEntity<>(headers), List.class).getBody();
