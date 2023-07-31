@@ -9,7 +9,10 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,8 +20,14 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.client.DefaultResponseErrorHandler;
+import org.springframework.web.client.ResourceAccessException;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,9 +68,17 @@ public class ControllerIntegrationTest {
         adminFullDto = adminDto.toFullDto(Role.ROLE_ADMIN);
         adminFullDto.setPassword(passwordEncoder.encode(adminDto.getPassword()));
         accountService.createAccount(adminFullDto);
+
         accountDto = AccountDto.builder().username("testUser")
                 .password("password")
                 .email("mail@mail.com").build();
+
+        restTemplate.getRestTemplate().setRequestFactory(new HttpComponentsClientHttpRequestFactory());
+        restTemplate.getRestTemplate().setErrorHandler(new DefaultResponseErrorHandler() {
+            public boolean hasError(@NonNull ClientHttpResponse response) throws IOException {
+                return response.getStatusCode().is5xxServerError();
+            }
+        });
     }
 
     /*@BeforeEach
@@ -72,13 +89,16 @@ public class ControllerIntegrationTest {
     @Test
     @DisplayName("Successful authentication")
     public void test_successful_authentication () throws JSONException {
+        // given
         Map<String, String> authRequestMap = new HashMap<>();
         authRequestMap.put("login", adminDto.getUsername());
         authRequestMap.put("password", adminDto.getPassword());
+
+        // when
         JSONObject response = new JSONObject(this.restTemplate.postForObject("http://localhost:" + port + "/auth",
                 authRequestMap , String.class));
 
-        System.out.println(response);
+        // then
         assertThat(response.getString("login")).isEqualTo(adminDto.getUsername());
         assertThat(response.getString("token")).isNotNull();
         assertTrue(response.getString("token").length() > 100);
@@ -87,13 +107,30 @@ public class ControllerIntegrationTest {
     @Test
     @DisplayName("Failed authentication (not found)")
     public void test_failed_authentication () {
+        // given
         Map<String, String> authRequestMap = new HashMap<>();
         authRequestMap.put("login", "badUserName");
         authRequestMap.put("password", "password");
+
+        // when
         String response = this.restTemplate.postForObject("http://localhost:" + port + "/auth",
                 authRequestMap , String.class);
-        System.out.println(response);
+
+        // then
         assertThat(response).contains("\"status\":404").contains("\"error\":\"Not Found\"");
+    }
+
+    @Test
+    @DisplayName("Failed authentication (not found)")
+    public void test_failed_authentication_password () throws ResourceAccessException {
+        Map<String, String> authRequestMap = new HashMap<>();
+        authRequestMap.put("login", adminDto.getUsername());
+        authRequestMap.put("password", "badPassword");
+
+        String response = this.restTemplate.postForObject("http://localhost:" + port + "/auth",
+                authRequestMap , String.class);
+
+        assertThat(response).contains("\"status\":401").contains("\"error\":\"Unauthorized\"");
     }
 
 
