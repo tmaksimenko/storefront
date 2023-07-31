@@ -28,5 +28,13 @@ public class AccountDto {
                 .audit(Audit.builder().createdOn(LocalDateTime.now()).createdBy(createdBy).build())
                 .build();
     }
+    public AccountFullDto toFullDto (Role role) {
+        return AccountFullDto.builder()
+                .username(username)
+                .email(email)
+                .password(password)
+                .role(role)
+                .build();
+    }
 
 }
