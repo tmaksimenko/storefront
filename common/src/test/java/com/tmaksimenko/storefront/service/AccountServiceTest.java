@@ -372,7 +372,8 @@ public class AccountServiceTest {
         // then
         ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
         verify(accountRepository).delete(captor.capture());
-        assertThat(account1).isSameAs(account).isSameAs(captor.getValue());
+        assertThat(account).isSameAs(captor.getValue());
+        assertThat(account1).isEqualTo(account.toDto().toNewAccount());
     }
 
     @Test
@@ -387,7 +388,8 @@ public class AccountServiceTest {
         // then
         ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
         verify(accountRepository).delete(captor.capture());
-        assertThat(account1).isSameAs(account).isSameAs(captor.getValue());
+        assertThat(account).isSameAs(captor.getValue());
+        assertThat(account1).isEqualTo(account.toDto().toNewAccount());
     }
 
     @Test
@@ -402,7 +404,8 @@ public class AccountServiceTest {
         // then
         ArgumentCaptor<Account> captor = ArgumentCaptor.forClass(Account.class);
         verify(accountRepository).delete(captor.capture());
-        assertThat(account1).isSameAs(account).isSameAs(captor.getValue());
+        assertThat(account).isSameAs(captor.getValue());
+        assertThat(account1).isEqualTo(account.toDto().toNewAccount());
     }
 
     @Test
