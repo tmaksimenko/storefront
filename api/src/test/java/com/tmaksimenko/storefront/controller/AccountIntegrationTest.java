@@ -282,6 +282,22 @@ public class AccountIntegrationTest {
         assertThat(response).contains(status(403)).contains(error("Forbidden"));
     }
 
+    @Test
+    @DisplayName("Successful delete own account")
+    public void test_successful_deleteAccount () throws JSONException {
+        // given
+        HttpHeaders headers = getTokenAsHeaders(authRequestMap);
+
+        // when
+        Account deletedAccount = this.restTemplate.exchange(baseURL + "/account/delete", HttpMethod.DELETE,
+                new HttpEntity<>(headers), Account.class).getBody();
+
+        // then
+        List<Account> accounts = accountService.findAll();
+        assertThat(accounts).isEmpty();
+        assertThat(deletedAccount.toDto().toFullDto(deletedAccount.getRole())).isEqualTo(adminFullDto);
+    }
+
     private HttpHeaders getTokenAsHeaders(Map<String, String> authRequestMap) throws JSONException {
         String tokenValue = new JSONObject(
                 this.restTemplate.postForObject(baseURL + "/auth",
