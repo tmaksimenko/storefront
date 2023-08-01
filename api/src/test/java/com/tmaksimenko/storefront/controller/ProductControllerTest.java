@@ -41,6 +41,7 @@ public class ProductControllerTest {
 
     MockMvc mockMvc;
 
+    @SuppressWarnings("unused") // required to exist in context
     @MockBean
     AccountService accountService;
 
