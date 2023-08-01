@@ -158,10 +158,12 @@ public class AccountIntegrationTest {
     public void test_successful_registerAnonymous_andAuthenticateAsAdmin_andGetAllAccounts () {
         // when
         Account registeredAccount = this.restTemplate.postForObject(baseURL + "/register", accountDto, Account.class);
-        List<Account> accounts = accountService.findAll();
 
         // then
-                assertThat(accounts).hasSize(2);
+        assertThat(registeredAccount).isNotNull();
+        List<Account> accounts = accountService.findAll();
+
+        assertThat(accounts).hasSize(2);
         assertThat(accounts.get(1)).extracting("username", "email", "password", "role", "address")
                 .containsExactly(registeredAccount.getUsername(), registeredAccount.getEmail(),
                         registeredAccount.getPassword(), registeredAccount.getRole(), registeredAccount.getAddress());
@@ -180,6 +182,7 @@ public class AccountIntegrationTest {
                 new HttpEntity<>(accountDto, headers), Account.class).getBody();
 
         // then
+        assertThat(registeredAccount).isNotNull();
         List<Account> accounts = accountService.findAll();
 
         assertThat(accounts).hasSize(2);
