@@ -51,7 +51,7 @@ public class OrderController {
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth")
             })
-    @GetMapping("/viewall")
+    @GetMapping("/all")
     public ResponseEntity<List<OrderGetDto>> viewAll() {
         List<Order> orders = orderService.findByLogin(SecurityContextHolder.getContext().getAuthentication().getName());
         List<OrderGetDto> orderGetDtos = orders.stream().map(Order::toFullDto).toList();
