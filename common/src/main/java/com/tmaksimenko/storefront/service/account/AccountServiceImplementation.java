@@ -109,7 +109,7 @@ public class AccountServiceImplementation implements AccountService {
         if (account.isEmpty())
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
         accountRepository.delete(account.get());
-        return account.get().toDto().toNewAccount();
+        return account.get().toDto().toNewAccount(); // strange serialization error without conversion, seemingly undefined behaviour
     }
 
     @Override
