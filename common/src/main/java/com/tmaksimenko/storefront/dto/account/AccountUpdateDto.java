@@ -12,4 +12,15 @@ public class AccountUpdateDto {
 
     Address address;
 
+    public Boolean isNull () {
+        if (accountDto == null || address == null)
+            return true;
+        return (accountDto.getUsername() == null &&
+                accountDto.getEmail() == null &&
+                accountDto.getPassword() == null &&
+                address.getStreetAddress() == null &&
+                address.getPostalCode() == null &&
+                address.getCountry() == null);
+    }
+
 }

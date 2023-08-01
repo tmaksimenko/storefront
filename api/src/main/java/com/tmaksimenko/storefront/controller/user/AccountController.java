@@ -74,17 +74,11 @@ public class AccountController {
             })
     @PutMapping("/update")
     public ResponseEntity<Account> updateAccount(@RequestBody AccountUpdateDto accountUpdateDto) {
+        if (accountUpdateDto.isNull())
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "BODY REQUIRED");
+
         AccountDto accountDto = accountUpdateDto.getAccountDto();
         Address address = accountUpdateDto.getAddress();
-        if (accountDto == null || address == null)
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "BODY REQUIRED");
-        if (accountDto.getUsername() == null &&
-            accountDto.getEmail() == null &&
-            accountDto.getPassword() == null &&
-            address.getStreetAddress() == null &&
-            address.getPostalCode() == null &&
-            address.getCountry() == null)
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "BODY REQUIRED");
 
         String password = accountDto.getPassword() == null ?
                 null : passwordEncoder.encode(accountDto.getPassword());
