@@ -2,6 +2,7 @@ package com.tmaksimenko.storefront.controller.user;
 
 import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
+import com.tmaksimenko.storefront.dto.account.AccountUpdateDto;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.account.Address;
@@ -11,7 +12,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
@@ -73,13 +73,21 @@ public class AccountController {
                             description = "JWT Token, can be generated in auth controller /auth")
             })
     @PutMapping("/update")
-    public ResponseEntity<Account> updateAccount(@RequestBody(required = false) AccountDto accountDto, @RequestBody(required = false) Address address) {
-        if (ObjectUtils.isEmpty(accountDto) && ObjectUtils.isEmpty(address))
+    public ResponseEntity<Account> updateAccount(@RequestBody AccountUpdateDto accountUpdateDto) {
+        AccountDto accountDto = accountUpdateDto.getAccountDto();
+        Address address = accountUpdateDto.getAddress();
+        if (accountDto == null || address == null)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "BODY REQUIRED");
+        if (accountDto.getUsername() == null &&
+            accountDto.getEmail() == null &&
+            accountDto.getPassword() == null &&
+            address.getStreetAddress() == null &&
+            address.getPostalCode() == null &&
+            address.getCountry() == null)
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "BODY REQUIRED");
 
         String password = accountDto.getPassword() == null ?
                 null : passwordEncoder.encode(accountDto.getPassword());
-
         AccountFullDto accountFullDto = AccountFullDto.builder()
                 .address(address)
                 .username(accountDto.getUsername())

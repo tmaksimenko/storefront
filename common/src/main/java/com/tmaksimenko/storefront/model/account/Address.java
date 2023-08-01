@@ -3,8 +3,7 @@ package com.tmaksimenko.storefront.model.account;
 import jakarta.persistence.Embeddable;
 import lombok.*;
 
-@Getter
-@Setter
+@Data
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor

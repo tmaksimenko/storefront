@@ -3,6 +3,7 @@ package com.tmaksimenko.storefront.service.account;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.account.Account;
+import com.tmaksimenko.storefront.model.account.Address;
 import com.tmaksimenko.storefront.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
@@ -83,8 +84,17 @@ public class AccountServiceImplementation implements AccountService {
             account.setEmail(accountFullDto.getEmail());
         if (ObjectUtils.isNotEmpty(accountFullDto.getPassword()))
             account.setPassword(accountFullDto.getPassword());
-        if (ObjectUtils.isNotEmpty(accountFullDto.getAddress()))
-            account.setAddress(accountFullDto.getAddress());
+        if (ObjectUtils.isNotEmpty(accountFullDto.getAddress())) {
+            Address newAddress = accountFullDto.getAddress();
+            Address address = new Address();
+            if (newAddress.getStreetAddress() != null)
+                address.setStreetAddress(newAddress.getStreetAddress());
+            if (newAddress.getPostalCode() != null)
+                address.setPostalCode(newAddress.getPostalCode());
+            if (newAddress.getCountry() != null)
+                address.setCountry(newAddress.getCountry());
+            account.setAddress(address);
+        }
 
         if (ObjectUtils.isNotEmpty(accountFullDto.getRole()))
             if (! (accountFullDto.getRole().equals(account.getRole())))

@@ -4,6 +4,7 @@ import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.model.base.Audit;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @Data
 @SuperBuilder(toBuilder = true)
 @AllArgsConstructor
+@NoArgsConstructor
 public class AccountDto {
 
     String username;
