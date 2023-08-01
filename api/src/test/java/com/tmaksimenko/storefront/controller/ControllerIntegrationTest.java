@@ -9,10 +9,7 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -58,6 +55,8 @@ public class ControllerIntegrationTest {
 
     AccountFullDto adminFullDto;
 
+    Map<String, String> authRequestMap;
+
     @BeforeAll
     public void setupAll () {
         adminDto = AccountDto.builder()
@@ -68,10 +67,13 @@ public class ControllerIntegrationTest {
         adminFullDto = adminDto.toFullDto(Role.ROLE_ADMIN);
         adminFullDto.setPassword(passwordEncoder.encode(adminDto.getPassword()));
         accountService.createAccount(adminFullDto);
-
         accountDto = AccountDto.builder().username("testUser")
                 .password("password")
                 .email("mail@mail.com").build();
+
+        authRequestMap = new HashMap<>();
+        authRequestMap.put("login", adminDto.getUsername());
+        authRequestMap.put("password", adminDto.getPassword());
 
         restTemplate.getRestTemplate().setRequestFactory(new HttpComponentsClientHttpRequestFactory());
         restTemplate.getRestTemplate().setErrorHandler(new DefaultResponseErrorHandler() {
@@ -79,6 +81,14 @@ public class ControllerIntegrationTest {
                 return response.getStatusCode().is5xxServerError();
             }
         });
+    }
+
+    @BeforeEach
+    public void setup () {
+        List<Account> accounts = accountService.findAll();
+        for (Account account : accounts)
+            accountService.deleteAccount(account.getId());
+        accountService.createAccount(adminFullDto);
     }
 
     private String status (int code) {
@@ -141,28 +151,46 @@ public class ControllerIntegrationTest {
 
 
     @Test
-    @DisplayName("Successful registration, authentication and get accounts/all")
-    public void test_successful_register_andAuthenticateAsAdmin_andGetAllAccounts () throws JSONException {
-        Map<String, String> authRequestMap = new HashMap<>();
-        authRequestMap.put("login", adminDto.getUsername());
-        authRequestMap.put("password", adminDto.getPassword());
-
-        assertThat(this.restTemplate.postForObject("http://localhost:" + port + "/register", accountDto, Account.class))
+    @DisplayName("Successful anonymous registration, authentication and get accounts/all")
+    public void test_successful_registerAnonymous_andAuthenticateAsAdmin_andGetAllAccounts () throws JSONException {
+        Account registeredAccount = this.restTemplate.postForObject("http://localhost:" + port + "/register", accountDto, Account.class);
+        System.out.println(registeredAccount);
+        assertThat(registeredAccount)
                 .isInstanceOf(Account.class)
                 .extracting("username", "email", "role")
                         .doesNotContainNull()
                         .containsExactly(accountDto.getUsername(), accountDto.getEmail(), Role.ROLE_USER);
 
-        String tokenValue = new JSONObject(
-                this.restTemplate.postForObject("http://localhost:" + port + "/auth",
-                        authRequestMap, String.class))
-                .getString("token");
+        HttpHeaders headers = getTokenAsHeaders(authRequestMap);
 
-        assertThat(tokenValue).isNotNull();
-        assertTrue(tokenValue.length() > 100);
+        @SuppressWarnings("all") // intentional raw use of parameterized class
+        List result = this.restTemplate.exchange(
+                "http://localhost:" + port + "/admin/accounts/all", HttpMethod.GET,
+                new HttpEntity<>(headers), List.class).getBody();
+        System.out.println(result);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Auth-Token", tokenValue);
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0)).extracting("username", "email", "role")
+                .containsExactly(adminFullDto.getUsername(), adminFullDto.getEmail(), adminFullDto.getRole().name());
+        assertThat(result.get(1)).extracting("username", "email", "role")
+                .containsExactly(accountDto.getUsername(), accountDto.getEmail(), Role.ROLE_USER.name());
+    }
+
+    @Test
+    @DisplayName("Successful known user registration, authentication and get accounts/all")
+    public void test_successful_registerKnown_andAuthenticateAsAdmin_andGetAllAccounts () throws JSONException {
+        HttpHeaders headers = getTokenAsHeaders(authRequestMap);
+
+        assertThat(this.restTemplate.exchange(
+                "http://localhost:" + port + "/register", HttpMethod.POST,
+                new HttpEntity<>(accountDto, headers), Account.class).getBody())
+                    .isInstanceOf(Account.class)
+                    .extracting("username", "email", "role")
+                            .doesNotContainNull()
+                            .containsExactly(accountDto.getUsername(), accountDto.getEmail(), Role.ROLE_USER);
+
+
+
 
         @SuppressWarnings("all") // intentional raw use of parameterized class
         List result = this.restTemplate.exchange(
@@ -174,9 +202,22 @@ public class ControllerIntegrationTest {
                 .containsExactly(adminFullDto.getUsername(), adminFullDto.getEmail(), adminFullDto.getRole().name());
         assertThat(result.get(1)).extracting("username", "email", "role")
                 .containsExactly(accountDto.getUsername(), accountDto.getEmail(), Role.ROLE_USER.name());
+        System.out.println(result.get(1));
     }
 
+    private HttpHeaders getTokenAsHeaders(Map<String, String> authRequestMap) throws JSONException {
+        String tokenValue = new JSONObject(
+                this.restTemplate.postForObject("http://localhost:" + port + "/auth",
+                        authRequestMap, String.class))
+                .getString("token");
 
+        assertThat(tokenValue).isNotNull();
+        assertTrue(tokenValue.length() > 100);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Auth-Token", tokenValue);
+        return headers;
+    }
 
 
 }
