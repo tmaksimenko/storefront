@@ -74,7 +74,7 @@ public class DiscountServiceTest {
         given(productDiscountRepository.findAll()).willReturn(List.of(productDiscount));
 
         // when
-        List<? super Discount> discounts = discountService.findAllDiscounts();
+        List<? super Discount> discounts = discountService.findAll();
 
         // then
         assertThat(discounts).isNotEmpty().contains(generalDiscount).contains(productDiscount);
@@ -88,7 +88,7 @@ public class DiscountServiceTest {
         given(productDiscountRepository.findAll()).willReturn(List.of());
 
         // when
-        List<? super Discount> discounts = discountService.findAllDiscounts();
+        List<? super Discount> discounts = discountService.findAll();
 
         // then
         assertThat(discounts).isEmpty();
@@ -140,7 +140,7 @@ public class DiscountServiceTest {
     @DisplayName("Successful findByRole")
     public void test_successful_findByRole () {
         // given
-        given(generalDiscountRepository.findByRole(generalDiscount.getRole().name()))
+        given(generalDiscountRepository.findByRole(generalDiscount.getRole()))
                 .willReturn(List.of(generalDiscount));
 
         // when
@@ -155,7 +155,7 @@ public class DiscountServiceTest {
     public void test_failed_findByRole () {
         // given
         Role badRole = Role.ROLE_USER;
-        given(generalDiscountRepository.findByRole(badRole.name()))
+        given(generalDiscountRepository.findByRole(badRole))
                 .willReturn(List.of());
 
         // when

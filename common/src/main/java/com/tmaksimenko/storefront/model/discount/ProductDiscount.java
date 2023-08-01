@@ -8,12 +8,14 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "productdiscounts")
 @SuperBuilder
 @Data
+@ToString(callSuper = true)
 @NoArgsConstructor
 public class ProductDiscount extends Discount {
 

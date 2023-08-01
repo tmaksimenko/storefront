@@ -27,7 +27,7 @@ public class DiscountServiceImplementation implements DiscountService{
     final ProductDiscountRepository productDiscountRepository;
 
     @Override
-    public List<Discount> findAllDiscounts () {
+    public List<Discount> findAll() {
         List<Discount> discounts = new ArrayList<>();
         discounts.addAll(generalDiscountRepository.findAll());
         discounts.addAll(productDiscountRepository.findAll());
@@ -42,7 +42,7 @@ public class DiscountServiceImplementation implements DiscountService{
 
     @Override
     public List<GeneralDiscount> findByRole (Role role) {
-        return generalDiscountRepository.findByRole(role.name());
+        return generalDiscountRepository.findByRole(role);
     }
 
     @Override

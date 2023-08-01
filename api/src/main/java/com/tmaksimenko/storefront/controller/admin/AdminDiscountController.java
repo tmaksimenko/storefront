@@ -55,7 +55,7 @@ public class AdminDiscountController {
                             description = "JWT Token, can be generated in auth controller /auth"))
     @GetMapping("/all")
     public ResponseEntity<List<DiscountDto>> viewAll() {
-        List<? super Discount> discounts = discountService.findAllDiscounts();
+        List<? super Discount> discounts = discountService.findAll();
 
         List<DiscountDto> discountDtos = discounts.stream().map(x -> {
             if (x.getClass().equals(GeneralDiscount.class))
@@ -92,7 +92,7 @@ public class AdminDiscountController {
                             description = "JWT Token, can be generated in auth controller /auth"))
     @Cacheable
     @PostMapping("/add")
-    public ResponseEntity<DiscountDto> createDiscount (DiscountCreateDto discountCreateDto) {
+    public ResponseEntity<DiscountDto> createDiscount (@RequestBody DiscountCreateDto discountCreateDto) {
         Audit audit = Audit.builder().createdOn(LocalDateTime.now()).createdBy(
                 SecurityContextHolder.getContext().getAuthentication().getName()).build();
 

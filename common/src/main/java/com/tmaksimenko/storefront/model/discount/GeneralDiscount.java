@@ -9,12 +9,14 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "generaldiscounts")
 @SuperBuilder
 @Data
+@ToString(callSuper = true)
 @NoArgsConstructor
 public class GeneralDiscount extends Discount {
 
