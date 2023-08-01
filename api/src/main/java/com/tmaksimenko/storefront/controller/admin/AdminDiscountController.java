@@ -123,11 +123,7 @@ public class AdminDiscountController {
                             description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/delete")
     public ResponseEntity<Discount> removeDiscount (@RequestParam Long id) {
-        try {
-            return ResponseEntity.ok(discountService.deleteDiscount(id));
-        } catch (DiscountNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Discount NOT FOUND", e);
-        }
+        return ResponseEntity.ok(discountService.deleteDiscount(id));
     }
 
     @Scheduled(fixedRate = 1800000)
