@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tmaksimenko.storefront.auth.JwtUtils;
 import com.tmaksimenko.storefront.controller.user.ProductController;
-import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.dto.product.ProductDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.model.Product;
@@ -48,8 +47,6 @@ public class ProductControllerTest {
     @MockBean
     ProductService productService;
 
-    AccountDto accountDto;
-
     Product product;
 
     @Autowired
@@ -65,21 +62,18 @@ public class ProductControllerTest {
     @MockBean
     UserDetailsService userDetailsService;
 
-    ObjectMapper objectMapper = new ObjectMapper();
+    final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeAll
     public void setupAll () {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
         passwordEncoder = new BCryptPasswordEncoder();
-        accountDto = AccountDto.builder().username("testUser")
-                .password("password")
-                .email("mail@mail.com").build();
         given(jwtUtils.getUsernameFromToken(Mockito.anyString())).willReturn("testUser");
         given(jwtUtils.validateToken(Mockito.any(), Mockito.any())).willReturn(true);
         given(userDetailsService.loadUserByUsername("testUser")).willReturn(
                 new org.springframework.security.core.userdetails.User(
-                        accountDto.getUsername(),
-                        accountDto.getPassword(),
+                        "testUser",
+                        "password",
                         AuthorityUtils.createAuthorityList(Role.ROLE_USER.name())));
     }
 
