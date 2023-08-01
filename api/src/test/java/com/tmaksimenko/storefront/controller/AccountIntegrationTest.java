@@ -154,8 +154,8 @@ public class AccountIntegrationTest {
     }
 
     @Test
-    @DisplayName("Successful anonymous registration, authentication and get accounts/all")
-    public void test_successful_registerAnonymous_andAuthenticateAsAdmin_andGetAllAccounts () {
+    @DisplayName("Successful anonymous registration")
+    public void test_successful_register_anonymous () {
         // when
         Account registeredAccount = this.restTemplate.postForObject(baseURL + "/register", accountDto, Account.class);
 
@@ -171,8 +171,8 @@ public class AccountIntegrationTest {
     }
 
     @Test
-    @DisplayName("Successful known user registration, authentication and get accounts/all")
-    public void test_successful_registerKnown_andAuthenticateAsAdmin_andGetAllAccounts () throws JSONException {
+    @DisplayName("Successful registration by known user")
+    public void test_successful_register_knownUser () throws JSONException {
         // given
         HttpHeaders headers = getTokenAsHeaders(authRequestMap);
 
