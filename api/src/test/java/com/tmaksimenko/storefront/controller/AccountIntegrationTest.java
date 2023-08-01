@@ -2,8 +2,10 @@ package com.tmaksimenko.storefront.controller;
 
 import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
+import com.tmaksimenko.storefront.dto.account.AccountUpdateDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.model.account.Account;
+import com.tmaksimenko.storefront.model.account.Address;
 import com.tmaksimenko.storefront.service.account.AccountService;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -38,6 +40,8 @@ public class AccountIntegrationTest {
 
     @Value(value = "${local.server.port}")
     int port;
+    
+    String baseURL;
 
     @Autowired
     TestRestTemplate restTemplate;
@@ -58,6 +62,7 @@ public class AccountIntegrationTest {
 
     @BeforeAll
     public void setupAll () {
+        baseURL = "http://localhost:" + port;
         adminDto = AccountDto.builder()
                 .username("testAdmin")
                 .password("password")
@@ -107,7 +112,7 @@ public class AccountIntegrationTest {
         authRequestMap.put("password", adminDto.getPassword());
 
         // when
-        JSONObject response = new JSONObject(this.restTemplate.postForObject("http://localhost:" + port + "/auth",
+        JSONObject response = new JSONObject(this.restTemplate.postForObject(baseURL + "/auth",
                 authRequestMap , String.class));
 
         // then
@@ -125,7 +130,7 @@ public class AccountIntegrationTest {
         authRequestMap.put("password", "password");
 
         // when
-        String response = this.restTemplate.postForObject("http://localhost:" + port + "/auth",
+        String response = this.restTemplate.postForObject(baseURL + "/auth",
                 authRequestMap , String.class);
 
         // then
@@ -141,7 +146,7 @@ public class AccountIntegrationTest {
         authRequestMap.put("password", "badPassword");
 
         // when
-        String response = this.restTemplate.postForObject("http://localhost:" + port + "/auth",
+        String response = this.restTemplate.postForObject(baseURL + "/auth",
                 authRequestMap , String.class);
 
         // then
@@ -150,70 +155,125 @@ public class AccountIntegrationTest {
 
     @Test
     @DisplayName("Successful anonymous registration, authentication and get accounts/all")
-    public void test_successful_registerAnonymous_andAuthenticateAsAdmin_andGetAllAccounts () throws JSONException {
-        Account registeredAccount = this.restTemplate.postForObject("http://localhost:" + port + "/register", accountDto, Account.class);
-        System.out.println(registeredAccount);
-        assertThat(registeredAccount)
-                .isInstanceOf(Account.class)
-                .extracting("username", "email", "role")
-                        .doesNotContainNull()
-                        .containsExactly(accountDto.getUsername(), accountDto.getEmail(), Role.ROLE_USER);
+    public void test_successful_registerAnonymous_andAuthenticateAsAdmin_andGetAllAccounts () {
+        // when
+        Account registeredAccount = this.restTemplate.postForObject(baseURL + "/register", accountDto, Account.class);
+        List<Account> accounts = accountService.findAll();
 
-        HttpHeaders headers = getTokenAsHeaders(authRequestMap);
-
-        @SuppressWarnings("all") // intentional raw use of parameterized class
-        List result = this.restTemplate.exchange(
-                "http://localhost:" + port + "/admin/accounts/all", HttpMethod.GET,
-                new HttpEntity<>(headers), List.class).getBody();
-        System.out.println(result);
-
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0)).extracting("username", "email", "role")
-                .containsExactly(adminFullDto.getUsername(), adminFullDto.getEmail(), adminFullDto.getRole().name());
-        assertThat(result.get(1)).extracting("username", "email", "role")
-                .containsExactly(accountDto.getUsername(), accountDto.getEmail(), Role.ROLE_USER.name());
+        // then
+                assertThat(accounts).hasSize(2);
+        assertThat(accounts.get(1)).extracting("username", "email", "password", "role", "address")
+                .containsExactly(registeredAccount.getUsername(), registeredAccount.getEmail(),
+                        registeredAccount.getPassword(), registeredAccount.getRole(), registeredAccount.getAddress());
+        assertThat(accounts.get(1).getAudit().getCreatedBy()).isEqualTo(accountDto.getUsername());
     }
 
     @Test
     @DisplayName("Successful known user registration, authentication and get accounts/all")
     public void test_successful_registerKnown_andAuthenticateAsAdmin_andGetAllAccounts () throws JSONException {
+        // given
         HttpHeaders headers = getTokenAsHeaders(authRequestMap);
 
-        assertThat(this.restTemplate.exchange(
-                "http://localhost:" + port + "/register", HttpMethod.POST,
-                new HttpEntity<>(accountDto, headers), Account.class).getBody())
-                    .isInstanceOf(Account.class)
-                    .extracting("username", "email", "role")
-                            .doesNotContainNull()
-                            .containsExactly(accountDto.getUsername(), accountDto.getEmail(), Role.ROLE_USER);
+        // when
+        Account registeredAccount = this.restTemplate.exchange(
+                baseURL + "/register", HttpMethod.POST,
+                new HttpEntity<>(accountDto, headers), Account.class).getBody();
 
+        // then
+        List<Account> accounts = accountService.findAll();
 
-
-
-        @SuppressWarnings("all") // intentional raw use of parameterized class
-        List result = this.restTemplate.exchange(
-                "http://localhost:" + port + "/admin/accounts/all", HttpMethod.GET,
-                new HttpEntity<>(headers), List.class).getBody();
-
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0)).extracting("username", "email", "role")
-                .containsExactly(adminFullDto.getUsername(), adminFullDto.getEmail(), adminFullDto.getRole().name());
-        assertThat(result.get(1)).extracting("username", "email", "role")
-                .containsExactly(accountDto.getUsername(), accountDto.getEmail(), Role.ROLE_USER.name());
-        System.out.println(result.get(1));
+        assertThat(accounts).hasSize(2);
+        assertThat(accounts.get(1)).extracting("username", "email", "password", "role", "address")
+                .containsExactly(registeredAccount.getUsername(), registeredAccount.getEmail(),
+                        registeredAccount.getPassword(), registeredAccount.getRole(), registeredAccount.getAddress());
+        assertThat(accounts.get(1).getAudit().getCreatedBy()).isEqualTo(adminFullDto.getUsername());
     }
 
     @Test
     @DisplayName("Failed registration - missing field")
-    public void test_failed_register() {
+    public void test_failed_register () {
         // given
         AccountDto accountDto1 = AccountDto.builder()
                 .username(accountDto.getUsername())
                 .email(accountDto.getEmail()).build();
 
         // when
-        String response = this.restTemplate.postForObject("http://localhost:" + port + "/register",
+        String response = this.restTemplate.postForObject(baseURL + "/register",
                 accountDto1 , String.class);
+
+        // then
+        assertThat(response).contains(status(403)).contains(error("Forbidden"));
+    }
+
+    @Test
+    @DisplayName("Successful view own account")
+    public void test_successful_viewSelfAccount () throws JSONException {
+        // given
+        HttpHeaders headers = getTokenAsHeaders(authRequestMap);
+
+        // when
+        Account result = this.restTemplate.exchange(
+                baseURL + "/account/view", HttpMethod.GET,
+                new HttpEntity<>(headers), Account.class).getBody();
+
+        // then
+        assertThat(result).isInstanceOf(Account.class).extracting("username", "email", "role")
+                .containsExactly(adminFullDto.getUsername(), adminFullDto.getEmail(), adminFullDto.getRole());
+    }
+
+    @Test
+    @DisplayName("Successful update own account - core fields")
+    public void test_successful_updateSelfAccount_core () throws JSONException {
+        // given
+        HttpHeaders headers = getTokenAsHeaders(authRequestMap);
+        AccountUpdateDto updatedAdmin = new AccountUpdateDto(
+                AccountDto.builder().email("newAdminMail@mail.com").build(),
+                new Address());
+        
+        // when
+        Account response = this.restTemplate.exchange(baseURL + "/account/update", HttpMethod.PUT,
+                new HttpEntity<>(updatedAdmin, headers), Account.class).getBody();
+
+        // then
+        assertThat(response).isInstanceOf(Account.class).extracting("username", "email", "role")
+                .containsExactly(adminFullDto.getUsername(), updatedAdmin.getAccountDto().getEmail(),
+                        adminFullDto.getRole());
+    }
+
+    @Test
+    @DisplayName("Successful update own account - address")
+    public void test_successful_updateSelfAccount_address () throws JSONException {
+        // given
+        HttpHeaders headers = getTokenAsHeaders(authRequestMap);
+        Address address = Address.builder()
+                .streetAddress("27 Mobile Dr")
+                .postalCode("M1M1M1")
+                .country("Canada")
+                .build();
+
+        AccountUpdateDto accountUpdateDto = new AccountUpdateDto(AccountDto.builder().build(), address);
+
+        // when
+        Account response = this.restTemplate.exchange(baseURL + "/account/update", HttpMethod.PUT,
+                new HttpEntity<>(accountUpdateDto, headers), Account.class).getBody();
+
+        // then
+        assertThat(response).isInstanceOf(Account.class)
+                .extracting("username", "email", "role", "address")
+                .containsExactly(adminFullDto.getUsername(), adminFullDto.getEmail(),
+                        adminFullDto.getRole(), address);
+    }
+
+    @Test
+    @DisplayName("Failed update own account")
+    public void test_failed_updateSelfAccount () throws JSONException {
+        // given
+        HttpHeaders headers = getTokenAsHeaders(authRequestMap);
+        AccountUpdateDto accountUpdateDto = new AccountUpdateDto(AccountDto.builder().build(), new Address());
+
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/account/update", HttpMethod.PUT,
+                new HttpEntity<>(accountUpdateDto, headers), String.class).getBody();
 
         // then
         assertThat(response).contains(status(403)).contains(error("Forbidden"));
@@ -221,7 +281,7 @@ public class AccountIntegrationTest {
 
     private HttpHeaders getTokenAsHeaders(Map<String, String> authRequestMap) throws JSONException {
         String tokenValue = new JSONObject(
-                this.restTemplate.postForObject("http://localhost:" + port + "/auth",
+                this.restTemplate.postForObject(baseURL + "/auth",
                         authRequestMap, String.class))
                 .getString("token");
 
