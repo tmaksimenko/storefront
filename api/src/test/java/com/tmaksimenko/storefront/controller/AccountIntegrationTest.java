@@ -22,7 +22,6 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.client.DefaultResponseErrorHandler;
-import org.springframework.web.client.ResourceAccessException;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -35,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class ControllerIntegrationTest {
+public class AccountIntegrationTest {
 
     @Value(value = "${local.server.port}")
     int port;
@@ -135,7 +134,7 @@ public class ControllerIntegrationTest {
 
     @Test
     @DisplayName("Failed authentication (bad password)")
-    public void test_failed_authentication_badPassword () throws ResourceAccessException {
+    public void test_failed_authentication_badPassword () {
         // given
         Map<String, String> authRequestMap = new HashMap<>();
         authRequestMap.put("login", adminDto.getUsername());
@@ -148,7 +147,6 @@ public class ControllerIntegrationTest {
         // then
         assertThat(response).contains(status(401)).contains(error("Unauthorized"));
     }
-
 
     @Test
     @DisplayName("Successful anonymous registration, authentication and get accounts/all")
@@ -205,6 +203,22 @@ public class ControllerIntegrationTest {
         System.out.println(result.get(1));
     }
 
+    @Test
+    @DisplayName("Failed registration - missing field")
+    public void test_failed_register() {
+        // given
+        AccountDto accountDto1 = AccountDto.builder()
+                .username(accountDto.getUsername())
+                .email(accountDto.getEmail()).build();
+
+        // when
+        String response = this.restTemplate.postForObject("http://localhost:" + port + "/register",
+                accountDto1 , String.class);
+
+        // then
+        assertThat(response).contains(status(403)).contains(error("Forbidden"));
+    }
+
     private HttpHeaders getTokenAsHeaders(Map<String, String> authRequestMap) throws JSONException {
         String tokenValue = new JSONObject(
                 this.restTemplate.postForObject("http://localhost:" + port + "/auth",
@@ -218,6 +232,5 @@ public class ControllerIntegrationTest {
         headers.add("X-Auth-Token", tokenValue);
         return headers;
     }
-
 
 }
