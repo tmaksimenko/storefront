@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
@@ -22,6 +23,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @Tag(name = "User Operations")
 @RestController
@@ -71,7 +73,10 @@ public class AccountController {
                             description = "JWT Token, can be generated in auth controller /auth")
             })
     @PutMapping("/update")
-    public ResponseEntity<Account> updateAccount(@RequestBody AccountDto accountDto, @RequestBody(required = false) Address address) {
+    public ResponseEntity<Account> updateAccount(@RequestBody(required = false) AccountDto accountDto, @RequestBody(required = false) Address address) {
+        if (ObjectUtils.isEmpty(accountDto) && ObjectUtils.isEmpty(address))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "BODY REQUIRED");
+
         String password = accountDto.getPassword() == null ?
                 null : passwordEncoder.encode(accountDto.getPassword());
 
