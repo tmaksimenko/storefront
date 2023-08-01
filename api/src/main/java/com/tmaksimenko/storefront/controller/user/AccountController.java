@@ -2,7 +2,6 @@ package com.tmaksimenko.storefront.controller.user;
 
 import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
-import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.account.Address;
@@ -23,7 +22,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 @Tag(name = "User Operations")
 @RestController
@@ -48,13 +46,8 @@ public class AccountController {
     @Cacheable("accounts")
     @GetMapping("/view")
     public ResponseEntity<AccountFullDto> viewAccountDetails() {
-        Account account;
-        try {
-            account = accountService.findByUsername(SecurityContextHolder.getContext()
-                    .getAuthentication().getName()).get();
-        } catch (AccountNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", e);
-        }
+        Account account = accountService.findByUsername(SecurityContextHolder.getContext()
+                    .getAuthentication().getName()).get(); // 404 handling not necessary because of token
 
         AccountFullDto accountFullDto = AccountFullDto.builder()
                 .username(account.getUsername())
