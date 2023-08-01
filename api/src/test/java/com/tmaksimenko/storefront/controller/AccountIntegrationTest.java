@@ -1,5 +1,6 @@
 package com.tmaksimenko.storefront.controller;
 
+import com.tmaksimenko.storefront.dto.account.AccountCreateDto;
 import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
 import com.tmaksimenko.storefront.dto.account.AccountUpdateDto;
@@ -58,10 +59,10 @@ public class AccountIntegrationTest {
 
     AccountFullDto adminFullDto;
 
-    Map<String, String> authRequestMap;
+    HttpHeaders headers;
 
     @BeforeAll
-    public void setupAll () {
+    public void setupAll () throws JSONException {
         baseURL = "http://localhost:" + port;
         adminDto = AccountDto.builder()
                 .username("testAdmin")
@@ -75,9 +76,10 @@ public class AccountIntegrationTest {
                 .password("password")
                 .email("mail@mail.com").build();
 
-        authRequestMap = new HashMap<>();
+        Map<String, String> authRequestMap = new HashMap<>();
         authRequestMap.put("login", adminDto.getUsername());
         authRequestMap.put("password", adminDto.getPassword());
+        headers = getTokenAsHeaders(authRequestMap);
 
         restTemplate.getRestTemplate().setRequestFactory(new HttpComponentsClientHttpRequestFactory());
         restTemplate.getRestTemplate().setErrorHandler(new DefaultResponseErrorHandler() {
@@ -172,10 +174,7 @@ public class AccountIntegrationTest {
 
     @Test
     @DisplayName("Successful registration by known user")
-    public void test_successful_register_knownUser () throws JSONException {
-        // given
-        HttpHeaders headers = getTokenAsHeaders(authRequestMap);
-
+    public void test_successful_register_knownUser () {
         // when
         Account registeredAccount = this.restTemplate.exchange(
                 baseURL + "/register", HttpMethod.POST,
@@ -210,10 +209,7 @@ public class AccountIntegrationTest {
 
     @Test
     @DisplayName("Successful view own account")
-    public void test_successful_viewSelfAccount () throws JSONException {
-        // given
-        HttpHeaders headers = getTokenAsHeaders(authRequestMap);
-
+    public void test_successful_viewSelfAccount () {
         // when
         Account result = this.restTemplate.exchange(
                 baseURL + "/account/view", HttpMethod.GET,
@@ -226,9 +222,8 @@ public class AccountIntegrationTest {
 
     @Test
     @DisplayName("Successful update own account - core fields")
-    public void test_successful_updateSelfAccount_core () throws JSONException {
+    public void test_successful_updateSelfAccount_core () {
         // given
-        HttpHeaders headers = getTokenAsHeaders(authRequestMap);
         AccountUpdateDto updatedAdmin = new AccountUpdateDto(
                 AccountDto.builder().email("newAdminMail@mail.com").build(),
                 new Address());
@@ -245,9 +240,8 @@ public class AccountIntegrationTest {
 
     @Test
     @DisplayName("Successful update own account - address")
-    public void test_successful_updateSelfAccount_address () throws JSONException {
+    public void test_successful_updateSelfAccount_address () {
         // given
-        HttpHeaders headers = getTokenAsHeaders(authRequestMap);
         Address address = Address.builder()
                 .streetAddress("27 Mobile Dr")
                 .postalCode("M1M1M1")
@@ -269,9 +263,8 @@ public class AccountIntegrationTest {
 
     @Test
     @DisplayName("Failed update own account")
-    public void test_failed_updateSelfAccount () throws JSONException {
+    public void test_failed_updateSelfAccount () {
         // given
-        HttpHeaders headers = getTokenAsHeaders(authRequestMap);
         AccountUpdateDto accountUpdateDto = new AccountUpdateDto(AccountDto.builder().build(), new Address());
 
         // when
@@ -284,10 +277,7 @@ public class AccountIntegrationTest {
 
     @Test
     @DisplayName("Successful delete own account")
-    public void test_successful_deleteAccount () throws JSONException {
-        // given
-        HttpHeaders headers = getTokenAsHeaders(authRequestMap);
-
+    public void test_successful_deleteAccount () {
         // when
         Account deletedAccount = this.restTemplate.exchange(baseURL + "/account/delete", HttpMethod.DELETE,
                 new HttpEntity<>(headers), Account.class).getBody();
@@ -295,8 +285,159 @@ public class AccountIntegrationTest {
         // then
         List<Account> accounts = accountService.findAll();
         assertThat(accounts).isEmpty();
+        assertThat(deletedAccount).isNotNull();
         assertThat(deletedAccount.toDto().toFullDto(deletedAccount.getRole())).isEqualTo(adminFullDto);
     }
+
+    @Test
+    @DisplayName("Successful admin viewAll")
+    public void test_successful_viewAll () {
+        // when
+        @SuppressWarnings("all") // intentional raw use of parameterized class
+        List result = this.restTemplate.exchange(baseURL + "/admin/accounts/all", HttpMethod.GET,
+                new HttpEntity<>(headers), List.class).getBody();
+
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).extracting("username", "email", "role")
+                .containsExactly(adminFullDto.getUsername(), adminFullDto.getEmail(), adminFullDto.getRole().name());
+    }
+
+    @Test
+    @DisplayName("Successful admin view")
+    public void test_successful_admin_view () {
+        // when
+        AccountFullDto account = this.restTemplate.exchange(baseURL + "/admin/accounts/view" + "?login=" + adminFullDto.getUsername(),
+                HttpMethod.GET, new HttpEntity<>(headers), AccountFullDto.class).getBody();
+
+        // then
+        assertThat(account).isNotNull().extracting("username", "email", "password", "role")
+                .containsExactly(adminFullDto.getUsername(), adminFullDto.getEmail(),
+                        adminFullDto.getPassword(), adminFullDto.getRole());
+    }
+
+    @Test
+    @DisplayName("Failed admin view")
+    public void test_failed_admin_view () {
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/admin/accounts/view" + "?login=badLogin",
+                HttpMethod.GET, new HttpEntity<>(headers), String.class).getBody();
+
+        // then
+        assertThat(response).contains(status(404)).contains(error("Not Found"));
+    }
+
+    @Test
+    @DisplayName("Successful admin add")
+    public void test_successful_admin_add () {
+        // given
+        AccountCreateDto accountCreateDto = AccountCreateDto.builder()
+                .username(accountDto.getUsername())
+                .email(accountDto.getEmail())
+                .password(accountDto.getPassword())
+                .role(Role.ROLE_USER).build();
+
+        // when
+        Account newAccount = this.restTemplate.exchange(baseURL + "/admin/accounts/add", HttpMethod.POST,
+                new HttpEntity<>(accountCreateDto, headers), Account.class).getBody();
+
+        // then
+        assertThat(newAccount).isNotNull();
+        List<Account> accounts = accountService.findAll();
+
+        assertThat(accounts).hasSize(2);
+        assertThat(accounts.get(1)).extracting("username", "email", "password", "role")
+                .containsExactly(newAccount.getUsername(), newAccount.getEmail(),
+                        newAccount.getPassword(), newAccount.getRole());
+        assertThat(accounts.get(1).getAudit().getCreatedBy()).isEqualTo(adminFullDto.getUsername());
+    }
+
+    @Test
+    @DisplayName("Failed admin add - bad role")
+    public void test_failed_admin_add_badRole () {
+        // given
+        class BadRoleAccountDto extends AccountDto {
+            final String role;
+            BadRoleAccountDto (String role) {this.role = role;}
+        }
+        BadRoleAccountDto badRoleAccountDto = new BadRoleAccountDto("ROLE_BAD_ROLE");
+
+        badRoleAccountDto.setUsername(accountDto.getUsername());
+        badRoleAccountDto.setEmail(accountDto.getEmail());
+        badRoleAccountDto.setPassword(accountDto.getPassword());
+
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/admin/accounts/add", HttpMethod.POST,
+                new HttpEntity<>(badRoleAccountDto, headers), String.class).getBody();
+        System.out.println(response);
+        // then
+        assertThat(response).contains(status(403)).contains(error("Forbidden"));
+    }
+
+    @Test
+    @DisplayName("Failed admin add - account already exists")
+    public void test_failed_admin_add_alreadyExists () {
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/admin/accounts/add", HttpMethod.POST,
+                new HttpEntity<>(adminFullDto, headers), String.class).getBody();
+
+        // then
+        assertThat(response).contains(status(403)).contains(error("Forbidden"));
+    }
+
+    @Test
+    @DisplayName("Successful admin update")
+    public void test_successful_admin_update () {
+        // given
+        AccountFullDto accountFullDto = adminFullDto.toBuilder().password("newPassword").build();
+
+        // when
+        Account response = this.restTemplate.exchange(baseURL + "/admin/accounts/update", HttpMethod.PUT,
+                new HttpEntity<>(accountFullDto, headers), Account.class).getBody();
+
+        // then
+        assertThat(response).isNotNull().isInstanceOf(Account.class);
+        assertThat(response.getPassword()).isNotEqualTo(adminFullDto.getPassword());
+    }
+
+    @Test
+    @DisplayName("Failed admin update")
+    public void test_failed_admin_update () {
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/admin/accounts/update", HttpMethod.PUT,
+                new HttpEntity<>(headers), String.class).getBody();
+
+        // then
+        assertThat(response).contains(status(400)).contains(error("Bad Request"));
+    }
+
+    @Test
+    @DisplayName("Successful admin delete")
+    public void test_successful_admin_delete () {
+        // when
+        Account deletedAccount = this.restTemplate.exchange(baseURL + "/admin/accounts/delete?login="
+                        + adminFullDto.getUsername(),
+                HttpMethod.DELETE, new HttpEntity<>(headers), Account.class).getBody();
+
+        // then
+        List<Account> accounts = accountService.findAll();
+        assertThat(accounts).isEmpty();
+        assertThat(deletedAccount).isNotNull();
+        assertThat(deletedAccount.toDto().toFullDto(deletedAccount.getRole())).isEqualTo(adminFullDto);
+    }
+
+    @Test
+    @DisplayName("Failed admin delete")
+    public void test_failed_admin_delete () {
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/admin/accounts/delete?login=badLogin",
+                HttpMethod.DELETE, new HttpEntity<>(headers), String.class).getBody();
+
+        // then
+        assertThat(response).contains(status(404)).contains(error("Not Found"));
+    }
+
+
 
     private HttpHeaders getTokenAsHeaders(Map<String, String> authRequestMap) throws JSONException {
         String tokenValue = new JSONObject(

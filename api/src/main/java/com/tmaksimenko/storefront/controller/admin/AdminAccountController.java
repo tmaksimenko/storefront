@@ -108,6 +108,9 @@ public class AdminAccountController {
     @PutMapping("/update")
     @SuppressWarnings("all")
     public ResponseEntity<AccountFullDto> updateAccount(@RequestBody AccountFullDto accountFullDto) {
+        accountFullDto.setPassword(accountFullDto.getPassword() == null ?
+                null : passwordEncoder.encode(accountFullDto.getPassword()));
+
         return ResponseEntity.ok(accountService.updateAccount(accountFullDto).toDto());
     }
 
