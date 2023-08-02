@@ -116,7 +116,8 @@
 						<version>0.8.10</version>
 						<configuration>
 							<excludes>
-								<exclude>**/plugin1/Main.class</exclude>
+								<exclude>**/dto/**/*</exclude>
+								<exclude>**/model/**/*</exclude>
 							</excludes>
 						</configuration>
 						<executions>
