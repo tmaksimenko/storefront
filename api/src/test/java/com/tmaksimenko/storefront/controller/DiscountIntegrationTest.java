@@ -7,6 +7,7 @@ import com.tmaksimenko.storefront.dto.discount.DiscountDto;
 import com.tmaksimenko.storefront.dto.product.ProductCreateDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.model.Product;
+import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.discount.Discount;
 import com.tmaksimenko.storefront.model.discount.GeneralDiscount;
 import com.tmaksimenko.storefront.model.discount.ProductDiscount;
@@ -78,6 +79,9 @@ public class DiscountIntegrationTest {
 
     @BeforeAll
     public void setupAll () throws JSONException {
+        for (Account account : accountService.findAll())
+            accountService.deleteAccount(account.getId());
+
         baseURL = "http://localhost:" + port;
         AccountDto adminDto = AccountDto.builder()
                 .username("testAdmin")

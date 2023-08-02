@@ -63,6 +63,9 @@ public class AccountIntegrationTest {
 
     @BeforeAll
     public void setupAll () throws JSONException {
+        for (Account account : accountService.findAll())
+            accountService.deleteAccount(account.getId());
+
         baseURL = "http://localhost:" + port;
         adminDto = AccountDto.builder()
                 .username("testAdmin")
