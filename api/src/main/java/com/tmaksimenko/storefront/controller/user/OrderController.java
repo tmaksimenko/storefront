@@ -152,7 +152,7 @@ public class OrderController {
         );
 
         return ResponseEntity.ok(String.format(
-                "UPDATED PRODUCTS -> %s ADDED PRODUCTS -> %s NOT FOUND -> %s",
+                "UPDATED PRODUCTS -> %s, ADDED PRODUCTS -> %s, NOT FOUND -> %s",
                 updatedProductIds, addedProductIds, notFoundProductIds));
     }
 
