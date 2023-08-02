@@ -219,10 +219,61 @@ public class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("Failed cartToOrder - cart empty")
-    public void test_failed_cartToOrder_cartEmpty () {
+    @DisplayName("Failed cartToOrder - cart null")
+    public void test_failed_cartToOrder_cartEmpty_null () {
         //given
         given(accountService.findByUsername(account.getUsername())).willReturn(Optional.of(account));
+
+        // when
+        Exception exception = assertThrows(ResponseStatusException.class, () -> orderService.cartToOrder());
+
+        // then
+        assertThat(exception).hasMessageContaining("CART IS EMPTY");
+    }
+
+    @Test
+    @DisplayName("Failed cartToOrder - items null")
+    public void test_failed_cartToOrder_cartEmpty_nullItems () {
+        //given
+        Account account1 = account.toBuilder()
+                .cart(Cart.builder()
+                        .price(cart.getPrice())
+                        .payment(cart.getPayment()).build()).build();
+        given(accountService.findByUsername(account1.getUsername())).willReturn(Optional.of(account1));
+
+        // when
+        Exception exception = assertThrows(ResponseStatusException.class, () -> orderService.cartToOrder());
+
+        // then
+        assertThat(exception).hasMessageContaining("CART IS EMPTY");
+    }
+
+    @Test
+    @DisplayName("Failed cartToOrder - price null")
+    public void test_failed_cartToOrder_cartEmpty_nullPrice () {
+        //given
+        Account account1 = account.toBuilder()
+                .cart(Cart.builder()
+                        .items(cart.getItems())
+                        .payment(cart.getPayment()).build()).build();
+        given(accountService.findByUsername(account1.getUsername())).willReturn(Optional.of(account1));
+
+        // when
+        Exception exception = assertThrows(ResponseStatusException.class, () -> orderService.cartToOrder());
+
+        // then
+        assertThat(exception).hasMessageContaining("CART IS EMPTY");
+    }
+
+    @Test
+    @DisplayName("Failed cartToOrder - payment null")
+    public void test_failed_cartToOrder_cartEmpty_nullPayment () {
+        //given
+        Account account1 = account.toBuilder()
+                .cart(Cart.builder()
+                        .price(cart.getPrice())
+                        .items(cart.getItems()).build()).build();
+        given(accountService.findByUsername(account1.getUsername())).willReturn(Optional.of(account1));
 
         // when
         Exception exception = assertThrows(ResponseStatusException.class, () -> orderService.cartToOrder());
