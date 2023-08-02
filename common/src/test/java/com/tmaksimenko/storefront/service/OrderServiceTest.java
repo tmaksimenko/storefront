@@ -2,6 +2,7 @@ package com.tmaksimenko.storefront.service;
 
 import com.tmaksimenko.storefront.dto.order.CartDto;
 import com.tmaksimenko.storefront.dto.order.CartItemDto;
+import com.tmaksimenko.storefront.dto.order.OrderGetDto;
 import com.tmaksimenko.storefront.dto.payment.PaymentCreateDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.enums.payment.PaymentProvider;
@@ -134,10 +135,10 @@ public class OrderServiceTest {
         given(orderRepository.findAll()).willReturn(List.of(order, order1));
 
         // when
-        List<Order> orders = orderService.findAll();
+        List<OrderGetDto> orders = orderService.findAll();
 
         // then
-        assertThat(orders).hasSize(2).contains(order).contains(order1);
+        assertThat(orders).hasSize(2).contains(order.toFullDto(), order1.toFullDto());
     }
 
     @Test
@@ -147,7 +148,7 @@ public class OrderServiceTest {
         given(orderRepository.findAll()).willReturn(List.of());
 
         // when
-        List<Order> orders = orderService.findAll();
+        List<OrderGetDto> orders = orderService.findAll();
 
         // then
         assertThat(orders).isEmpty();

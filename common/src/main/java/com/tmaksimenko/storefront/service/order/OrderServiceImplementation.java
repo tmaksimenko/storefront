@@ -1,6 +1,7 @@
 package com.tmaksimenko.storefront.service.order;
 
 import com.tmaksimenko.storefront.dto.order.CartDto;
+import com.tmaksimenko.storefront.dto.order.OrderGetDto;
 import com.tmaksimenko.storefront.enums.payment.PaymentStatus;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
@@ -23,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 
@@ -37,8 +39,8 @@ public class OrderServiceImplementation implements OrderService {
     final ProductService productService;
 
     @Override
-    public List<Order> findAll () {
-        return orderRepository.findAll();
+    public List<OrderGetDto> findAll () {
+        return orderRepository.findAll().stream().map(Order::toFullDto).collect(Collectors.toList());
     }
 
     @Override

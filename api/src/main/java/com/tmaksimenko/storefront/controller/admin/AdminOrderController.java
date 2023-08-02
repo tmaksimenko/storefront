@@ -48,9 +48,8 @@ public class AdminOrderController {
                             description = "JWT Token, can be generated in auth controller /auth"))
     @GetMapping("/all")
     public ResponseEntity<List<OrderGetDto>> viewAll() {
-        List<Order> orders = orderService.findAll();
-        List<OrderGetDto> orderGetDtos = orders.stream().map(Order::toFullDto).toList();
-        return ResponseEntity.ok(orderGetDtos);
+        List<OrderGetDto> orders = orderService.findAll();
+        return ResponseEntity.ok(orders);
     }
 
     @Operation(summary = "View a specific order", parameters = {
