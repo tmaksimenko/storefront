@@ -17,6 +17,7 @@
     <modules>
         <module>api</module>
 		<module>common</module>
+		<module>jacoco</module>
 	</modules>
     <properties>
 		<java.version>17</java.version>
@@ -100,6 +101,36 @@
 			<version>2.0.0</version>
 		</dependency>
 	</dependencies>
+
+	<profiles>
+		<profile>
+			<id>jacoco</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>0.8.10</version>
+						<configuration>
+							<excludes>
+								<exclude>**/plugin1/Main.class</exclude>
+							</excludes>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 	<build>
 		<plugins>
