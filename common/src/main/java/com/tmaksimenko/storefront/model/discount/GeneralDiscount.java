@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "generaldiscounts")
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 @Data
 @ToString(callSuper = true)
 @NoArgsConstructor
