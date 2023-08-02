@@ -2,7 +2,7 @@ package com.tmaksimenko.storefront.dto.order;
 
 import lombok.*;
 
-@Getter
+@Data
 @AllArgsConstructor
 public class CartItemDto {
 

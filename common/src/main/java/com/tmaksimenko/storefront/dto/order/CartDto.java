@@ -5,9 +5,8 @@ import lombok.*;
 
 import java.util.List;
 
-@Getter
-@Setter
-@Builder
+@Data
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class CartDto {
