@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang3.ObjectUtils.isEmpty;
-
 @Service
 @Transactional
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
@@ -54,10 +52,12 @@ public class OrderServiceImplementation implements OrderService {
         Optional<Account> optionalAccount = accountService.findByUsername(username);
         if (optionalAccount.isEmpty())
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
-        if (isEmpty(optionalAccount.get().getCart()))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "CART IS EMPTY");
-
         Cart cart = optionalAccount.get().getCart();
+        if (cart == null ||
+           (cart.getItems() == null ||
+            cart.getPrice() == null ||
+            cart.getPayment() == null))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "CART IS EMPTY");
 
         Order order = Order.builder()
                 .account(optionalAccount.get())
