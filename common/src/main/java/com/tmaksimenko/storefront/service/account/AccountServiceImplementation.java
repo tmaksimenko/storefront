@@ -1,9 +1,11 @@
 package com.tmaksimenko.storefront.service.account;
 
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
+import com.tmaksimenko.storefront.enums.payment.PaymentStatus;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.account.Address;
+import com.tmaksimenko.storefront.model.account.Cart;
 import com.tmaksimenko.storefront.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
@@ -101,6 +103,15 @@ public class AccountServiceImplementation implements AccountService {
                 account.setRole(accountFullDto.getRole());
 
         return account;
+    }
+
+    @Override
+    public Account addCart (Cart cart) {
+        Account account = accountRepository.findByUsername(
+                SecurityContextHolder.getContext().getAuthentication().getName()).get(0);
+        cart.getPayment().setPaymentStatus(PaymentStatus.PAID);
+        account.setCart(cart);
+        return accountRepository.save(account);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.tmaksimenko.storefront.service.account;
 
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
 import com.tmaksimenko.storefront.model.account.Account;
+import com.tmaksimenko.storefront.model.account.Cart;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +23,8 @@ public interface AccountService {
     Account createAccount(AccountFullDto accountFullDto);
 
     Account updateAccount(AccountFullDto accountFullDto);
+
+    Account addCart (Cart cart);
 
     @SuppressWarnings("unused")
     Account deleteAccount(Long id);
