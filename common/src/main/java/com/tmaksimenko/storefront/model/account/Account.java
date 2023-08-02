@@ -18,8 +18,8 @@ import java.util.Set;
 @Data
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
-@ToString(exclude = {"orders", "cart"})
-@EqualsAndHashCode(exclude = {"orders", "cart"})
+@ToString(exclude = "orders")
+@EqualsAndHashCode(exclude = "orders")
 public class Account extends BaseEntity {
 
     String username;
