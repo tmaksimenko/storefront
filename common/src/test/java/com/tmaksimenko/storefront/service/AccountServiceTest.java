@@ -1,10 +1,17 @@
 package com.tmaksimenko.storefront.service;
 
+import com.tmaksimenko.storefront.dto.payment.PaymentCreateDto;
 import com.tmaksimenko.storefront.enums.Role;
+import com.tmaksimenko.storefront.enums.payment.PaymentProvider;
+import com.tmaksimenko.storefront.enums.payment.PaymentStatus;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
+import com.tmaksimenko.storefront.model.Product;
 import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.account.Address;
+import com.tmaksimenko.storefront.model.account.Cart;
 import com.tmaksimenko.storefront.model.base.Audit;
+import com.tmaksimenko.storefront.model.payment.ExpiryDate;
+import com.tmaksimenko.storefront.model.payment.PaymentInfo;
 import com.tmaksimenko.storefront.repository.AccountRepository;
 import com.tmaksimenko.storefront.service.account.AccountService;
 import com.tmaksimenko.storefront.service.account.AccountServiceImplementation;
@@ -24,6 +31,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -358,6 +366,41 @@ public class AccountServiceTest {
 
         // then
         assertThat(account1).isEqualTo(account);
+    }
+
+    @Test
+    @DisplayName("Successful addCart")
+    public void test_successful_addCart () {
+        // given
+        given(accountRepository.findByUsername(Mockito.anyString())).willReturn(List.of(account));
+
+        Product product = Product.builder()
+                .id(1L)
+                .name("name")
+                .brand("brand")
+                .price(10.0)
+                .weight(1.0)
+                .build();
+
+        Cart cart = Cart.builder()
+                .payment(PaymentCreateDto.builder()
+                        .paymentInfo(PaymentInfo.builder()
+                                .cardNumber(1111111111111111L)
+                                .expiry(new ExpiryDate(8, 23))
+                                .securityCode(111)
+                                .postalCode("M1M1M1")
+                                .build())
+                        .paymentProvider(PaymentProvider.VISA)
+                        .build().toPayment(PaymentStatus.NOT_PAID))
+                .items(Collections.singletonMap(product.getId(), 1))
+                .build();
+
+        // when
+        Account account1 = accountService.addCart(cart);
+
+        // then
+        assertThat(account1.getCart()).isNotNull();
+        assertThat(account1.getCart().getPayment().getPaymentStatus()).isEqualTo(PaymentStatus.PAID);
     }
 
     @Test
