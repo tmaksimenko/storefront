@@ -232,6 +232,29 @@ public class ProductServiceTest {
     }
 
     @Test
+    @DisplayName("Successful real createCart - multiple general discounts")
+    public void test_realCreateCart_multipleGeneralDiscounts () {
+        //given
+        GeneralDiscount generalDiscount1 = generalDiscount.toBuilder().percent(12.0).build();
+
+        given(accountService.findByUsername(account.getUsername())).willReturn(Optional.of(account));
+        given(discountService.findByRole(account.getRole())).willReturn(List.of(generalDiscount1, generalDiscount));
+        given(discountService.findByProductId(product.getId())).willReturn(Optional.empty());
+        given(spyProductService.findById(product.getId())).willReturn(Optional.of(product));
+
+        // when
+        Cart cart = spyProductService.createCart(cartDto, account.getUsername());
+
+        // then
+        Map<Long, Integer> itemMap = cartDto.getCartItemDtos().stream().collect(
+                Collectors.toMap(CartItemDto::getProductId, CartItemDto::getQuantity));
+        assertThat(cart.getPrice()).isEqualTo((product.getPrice() + (product.getWeight() * 0.1))
+                * ((100.0 - generalDiscount1.getPercent())/100.0));
+        assertThat(cart.getPayment()).isEqualTo(cartDto.getPaymentCreateDto().toPayment(PaymentStatus.NOT_PAID));
+        assertThat(cart.getItems()).isEqualTo(itemMap);
+    }
+
+    @Test
     @DisplayName("Successful real createCart - product discount")
     public void test_realCreateCart_productDiscount () {
         //given
@@ -329,6 +352,21 @@ public class ProductServiceTest {
 
         // then
         assertThat(product1).isNotEqualTo(product);
+    }
+
+    @Test
+    @DisplayName("Successful updateProduct - none changed")
+    public void test_successful_updateProduct_noneChanged () {
+        //given
+        ProductCreateDto productCreateDto1 = ProductCreateDto.builder().build();
+
+        given(productRepository.findById(product.getId())).willReturn(Optional.of(product.toBuilder().build()));
+
+        // when
+        Product product1 = productService.updateProduct(product.getId(), productCreateDto1);
+
+        // then
+        assertThat(product1).isEqualTo(product);
     }
 
     @Test
