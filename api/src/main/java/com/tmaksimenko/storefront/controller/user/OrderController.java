@@ -90,7 +90,6 @@ public class OrderController {
                             name = "X-Auth-Token",
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
-    @Cacheable
     @PostMapping("/submit")
     public ResponseEntity<OrderGetDto> submitOrder () {
         return ResponseEntity.ok(orderService.cartToOrder().toFullDto());
@@ -102,12 +101,11 @@ public class OrderController {
                             name = "X-Auth-Token",
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
-    @Cacheable
     @PutMapping("/update")
     public ResponseEntity<String> updateOrder(@RequestParam Long id, @RequestBody Map<String, Integer> params) {
         Optional<Order> optionalOrder = orderService.findById(id);
         if (optionalOrder.isEmpty())
-            return new ResponseEntity<>("ORDER NOT FOUND", HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException());
 
         if (!accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get()
                 .getOrders().contains(optionalOrder.get()))
