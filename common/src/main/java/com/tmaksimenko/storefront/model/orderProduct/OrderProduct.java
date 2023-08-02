@@ -60,6 +60,7 @@ public class OrderProduct {
 
     public OrderProductDto toDto () {
         return OrderProductDto.builder()
+                .orderId(this.order.getId())
                 .productDto(this.product.toDto())
                 .quantity(this.quantity)
                 .build();
