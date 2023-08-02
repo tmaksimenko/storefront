@@ -96,7 +96,7 @@ public class JwtUtils {
         return this.getTokenClaims(token).getExpiration();
     }
 
-    private Boolean checkExpiry(String token) {
+    public Boolean checkExpiry(String token) {
         return getExpiration(token).before(new Date());
     }
 
