@@ -145,7 +145,7 @@ public class DiscountIntegrationTest {
     @DisplayName("Successful admin viewAll")
     public void test_successful_viewAll () {
         // when
-        @SuppressWarnings("all") // intentional raw use of parameterized class
+        @SuppressWarnings("rawtypes") // intentional raw use of parameterized class
         List result = this.restTemplate.exchange(baseURL + "/admin/discounts/all", HttpMethod.GET,
                 new HttpEntity<>(headers), List.class).getBody();
 

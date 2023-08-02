@@ -19,7 +19,8 @@ public class Cart {
     @Embedded
     Payment payment;
 
-    @SuppressWarnings("all")
+
+    @SuppressWarnings("JpaDataSourceORMInspection") // refuses to see columns
     @ElementCollection
     @CollectionTable(name = "cart",
             joinColumns = {@JoinColumn(name = "account_id", referencedColumnName = "id")})

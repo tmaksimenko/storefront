@@ -90,7 +90,6 @@ public class ProductController {
                             description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/cart")
     public ResponseEntity<String> deleteCart () {
-        @SuppressWarnings("all")
         Account account = accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get();
         if (isEmpty(account.getCart())) {
             return new ResponseEntity<>("NO CART FOUND", HttpStatus.OK);

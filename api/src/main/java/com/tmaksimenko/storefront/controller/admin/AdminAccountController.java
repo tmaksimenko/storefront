@@ -106,7 +106,6 @@ public class AdminAccountController {
                             description = "JWT Token, can be generated in auth controller /auth"))
     @Cacheable
     @PutMapping("/update")
-    @SuppressWarnings("all")
     public ResponseEntity<AccountFullDto> updateAccount(@RequestBody AccountFullDto accountFullDto) {
         accountFullDto.setPassword(accountFullDto.getPassword() == null ?
                 null : passwordEncoder.encode(accountFullDto.getPassword()));
