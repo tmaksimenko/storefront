@@ -111,7 +111,7 @@ public class AccountServiceImplementation implements AccountService {
                 SecurityContextHolder.getContext().getAuthentication().getName()).get(0);
         cart.getPayment().setPaymentStatus(PaymentStatus.PAID);
         account.setCart(cart);
-        return accountRepository.save(account);
+        return account;
     }
 
     @Override
