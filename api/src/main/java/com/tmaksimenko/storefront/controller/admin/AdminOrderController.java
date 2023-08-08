@@ -92,7 +92,7 @@ public class AdminOrderController {
     public ResponseEntity<String> updateOrder(@RequestParam Long id, @RequestBody Map<String, Integer> params) {
         Optional<Order> optionalOrder = orderService.findById(id);
         if (optionalOrder.isEmpty())
-            return new ResponseEntity<>("ORDER NOT FOUND", HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException());
 
         Order order = optionalOrder.get();
 
@@ -144,8 +144,8 @@ public class AdminOrderController {
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/delete")
-    public ResponseEntity<Order> removeOrder(@RequestParam Long id) {
-        return ResponseEntity.ok(orderService.deleteOrder(id));
+    public ResponseEntity<OrderGetDto> removeOrder(@RequestParam Long id) {
+        return ResponseEntity.ok(orderService.deleteOrder(id).toFullDto());
     }
 
     @Scheduled(fixedRate = 1800000)
