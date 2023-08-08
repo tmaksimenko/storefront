@@ -61,9 +61,8 @@ public class AdminDiscountController {
         List<DiscountDto> discountDtos = discounts.stream().map(x -> {
             if (x.getClass().equals(GeneralDiscount.class))
                 return ((GeneralDiscount) x).toDto();
-            if (x.getClass().equals(ProductDiscount.class))
+            else // x.getClass().equals(ProductDiscount.class)
                 return ((ProductDiscount) x).toDto();
-            return ((Discount) x).toDto();
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(discountDtos);
