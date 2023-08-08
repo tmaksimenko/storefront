@@ -118,7 +118,6 @@
 							<excludes>
 								<exclude>**/dto/**/*</exclude>
 								<exclude>**/model/**/*</exclude>
-								<exclude>com.tmaksimenko.storefront.auth.AuthenticationTokenFilter</exclude>
 							</excludes>
 						</configuration>
 						<executions>
