@@ -49,10 +49,9 @@ public class OrderServiceImplementation implements OrderService {
     @Override
     public Order cartToOrder () {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Optional<Account> optionalAccount = accountService.findByUsername(username);
-        if (optionalAccount.isEmpty())
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
-        Cart cart = optionalAccount.get().getCart();
+        Account account = accountService.findByUsername(username).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException()));
+        Cart cart = account.getCart();
         if (cart == null ||
            (cart.getItems() == null ||
             cart.getPrice() == null ||
@@ -60,7 +59,7 @@ public class OrderServiceImplementation implements OrderService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "CART IS EMPTY");
 
         Order order = Order.builder()
-                .account(optionalAccount.get())
+                .account(account)
                 .audit(Audit.builder()
                         .createdOn(LocalDateTime.now())
                         .createdBy(username).build())
