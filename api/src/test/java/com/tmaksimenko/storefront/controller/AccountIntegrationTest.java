@@ -228,7 +228,7 @@ public class AccountIntegrationTest {
     public void test_successful_updateSelfAccount_core () {
         // given
         AccountUpdateDto updatedAdmin = new AccountUpdateDto(
-                AccountDto.builder().email("newAdminMail@mail.com").build(),
+                AccountDto.builder().email("newAdminMail@mail.com").password("newPassword").build(),
                 new Address());
         
         // when
@@ -236,9 +236,10 @@ public class AccountIntegrationTest {
                 new HttpEntity<>(updatedAdmin, headers), Account.class).getBody();
 
         // then
-        assertThat(response).isInstanceOf(Account.class).extracting("username", "email", "role")
+        assertThat(response).extracting("username", "email", "role")
                 .containsExactly(adminFullDto.getUsername(), updatedAdmin.getAccountDto().getEmail(),
                         adminFullDto.getRole());
+        assertThat(response).extracting("password").isNotEqualTo(adminFullDto.getPassword());
     }
 
     @Test
@@ -389,8 +390,8 @@ public class AccountIntegrationTest {
     }
 
     @Test
-    @DisplayName("Successful admin update")
-    public void test_successful_admin_update () {
+    @DisplayName("Successful admin update - password")
+    public void test_successful_admin_updatePassword () {
         // given
         AccountFullDto accountFullDto = adminFullDto.toBuilder().password("newPassword").build();
 
@@ -401,6 +402,20 @@ public class AccountIntegrationTest {
         // then
         assertThat(response).isNotNull().isInstanceOf(Account.class);
         assertThat(response.getPassword()).isNotEqualTo(adminFullDto.getPassword());
+    }
+    @Test
+    @DisplayName("Successful admin update - email")
+    public void test_successful_admin_updateEmail () {
+        // given
+        AccountFullDto accountFullDto = adminFullDto.toBuilder().password(null).email("newAdminMail@mail.com").build();
+
+        // when
+        Account response = this.restTemplate.exchange(baseURL + "/admin/accounts/update", HttpMethod.PUT,
+                new HttpEntity<>(accountFullDto, headers), Account.class).getBody();
+
+        // then
+        assertThat(response).isNotNull().isInstanceOf(Account.class);
+        assertThat(response.getEmail()).isNotEqualTo(adminFullDto.getEmail());
     }
 
     @Test
