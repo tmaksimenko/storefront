@@ -109,7 +109,8 @@ public class AccountServiceImplementation implements AccountService {
     public Account addCart (Cart cart) {
         Account account = accountRepository.findByUsername(
                 SecurityContextHolder.getContext().getAuthentication().getName()).get(0);
-        cart.getPayment().setPaymentStatus(PaymentStatus.PAID);
+        if (cart != null)
+            cart.getPayment().setPaymentStatus(PaymentStatus.PAID);
         account.setCart(cart);
         return account;
     }
