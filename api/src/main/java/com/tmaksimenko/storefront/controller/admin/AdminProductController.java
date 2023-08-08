@@ -14,10 +14,12 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @Tag(name = "Administrator Utilities")
 @RestController
@@ -39,6 +41,11 @@ public class AdminProductController {
     @Cacheable
     @PostMapping("/add")
     public ResponseEntity<Product> createProduct (@RequestBody ProductCreateDto productCreateDto) {
+        if (productCreateDto.getName() == null ||
+            productCreateDto.getBrand() == null ||
+            productCreateDto.getPrice() == null ||
+            productCreateDto.getWeight() == null)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ALL FIELDS REQUIRED");
         return ResponseEntity.ok(productService.createProduct(productCreateDto));
     }
 
