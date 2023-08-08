@@ -1,11 +1,13 @@
 package com.tmaksimenko.storefront.controller.user;
 
-import com.tmaksimenko.storefront.dto.product.ProductDto;
+import com.tmaksimenko.storefront.annotation.ExcludeFromJacocoGeneratedReport;
 import com.tmaksimenko.storefront.dto.order.CartDto;
+import com.tmaksimenko.storefront.dto.product.ProductDto;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
+import com.tmaksimenko.storefront.exception.ProductNotFoundException;
+import com.tmaksimenko.storefront.model.Product;
 import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.account.Cart;
-import com.tmaksimenko.storefront.model.Product;
 import com.tmaksimenko.storefront.service.account.AccountService;
 import com.tmaksimenko.storefront.service.product.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,16 +17,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
 import java.util.List;
-
-import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 
 @Tag(name = "User Operations")
 @RestController
@@ -49,7 +53,9 @@ public class ProductController {
     @Operation(summary = "Fetch individual product")
     @GetMapping("/view")
     public ResponseEntity<Product> viewProduct (@RequestParam Long id) {
-        return ResponseEntity.of(productService.findById(id));
+        return new ResponseEntity<>(productService.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "PRODUCT NOT FOUND", new ProductNotFoundException())),
+                HttpStatus.OK);
     }
 
     @Operation(summary = "View cart", parameters =
@@ -62,7 +68,7 @@ public class ProductController {
     public ResponseEntity<Cart> viewCart () {
         return new ResponseEntity<>(
                 accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName())
-                        .orElseThrow(AccountNotFoundException::new).getCart(),
+                        .get().getCart(),
                 HttpStatus.OK);
     }
 
@@ -76,7 +82,10 @@ public class ProductController {
     public ResponseEntity<String> createCart (@RequestBody CartDto cartDto) {
         Account account = accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication()
                 .getName()).orElseThrow(AccountNotFoundException::new);
-        if (!isEmpty(account.getCart()))
+        if (!account.getCart().equals(Cart.builder()
+                .payment(null)
+                .price(null)
+                .items(new HashMap<>()).build()))
             deleteCart();
         account.setCart(productService.createCart(cartDto));
         return new ResponseEntity<>("CART CREATED", HttpStatus.CREATED);
@@ -90,9 +99,11 @@ public class ProductController {
                             description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/cart")
     public ResponseEntity<String> deleteCart () {
-        @SuppressWarnings("all")
         Account account = accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get();
-        if (isEmpty(account.getCart())) {
+        if (account.getCart().equals(Cart.builder()
+                .payment(null)
+                .price(null)
+                .items(new HashMap<>()).build())) {
             return new ResponseEntity<>("NO CART FOUND", HttpStatus.OK);
         } else {
             account.setCart(new Cart());
@@ -100,5 +111,10 @@ public class ProductController {
         }
     }
 
+    @Scheduled(fixedRate = 1800000)
+    @CacheEvict(allEntries = true)
+    @ExcludeFromJacocoGeneratedReport
+    public void emptyCache () {
+    }
 
 }

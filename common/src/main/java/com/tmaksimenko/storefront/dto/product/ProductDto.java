@@ -1,15 +1,13 @@
 package com.tmaksimenko.storefront.dto.product;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
-@Getter
+@Data
 @Builder
 @AllArgsConstructor
 public class ProductDto {
 
-    long id;
+    Long id;
 
     String name;
 

@@ -4,13 +4,11 @@ import com.tmaksimenko.storefront.dto.OrderProductDto;
 import com.tmaksimenko.storefront.dto.payment.PaymentGetDto;
 import com.tmaksimenko.storefront.model.base.Audit;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 @Builder
 public class OrderGetDto {
 

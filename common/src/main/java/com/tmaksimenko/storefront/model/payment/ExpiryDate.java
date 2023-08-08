@@ -12,8 +12,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExpiryDate {
-    int month;
-    int year;
+    Integer month;
+    Integer year;
     public String toString() {
         return String.format("%d/%d", this.month, this.year);
     }

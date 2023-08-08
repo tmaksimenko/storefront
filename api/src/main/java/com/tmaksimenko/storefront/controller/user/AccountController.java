@@ -1,8 +1,9 @@
 package com.tmaksimenko.storefront.controller.user;
 
+import com.tmaksimenko.storefront.annotation.ExcludeFromJacocoGeneratedReport;
 import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
-import com.tmaksimenko.storefront.exception.AccountNotFoundException;
+import com.tmaksimenko.storefront.dto.account.AccountUpdateDto;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.account.Address;
@@ -48,13 +49,8 @@ public class AccountController {
     @Cacheable("accounts")
     @GetMapping("/view")
     public ResponseEntity<AccountFullDto> viewAccountDetails() {
-        Account account;
-        try {
-            account = accountService.findByUsername(SecurityContextHolder.getContext()
-                    .getAuthentication().getName()).get();
-        } catch (AccountNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", e);
-        }
+        Account account = accountService.findByUsername(SecurityContextHolder.getContext()
+                    .getAuthentication().getName()).get(); // 404 handling not necessary because of token
 
         AccountFullDto accountFullDto = AccountFullDto.builder()
                 .username(account.getUsername())
@@ -78,13 +74,20 @@ public class AccountController {
                             description = "JWT Token, can be generated in auth controller /auth")
             })
     @PutMapping("/update")
-    public ResponseEntity<Account> updateAccount(@RequestBody AccountDto accountDto, @RequestBody Address address) {
+    public ResponseEntity<Account> updateAccount(@RequestBody AccountUpdateDto accountUpdateDto) {
+        if (accountUpdateDto.isNull())
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "BODY REQUIRED");
 
+        AccountDto accountDto = accountUpdateDto.getAccountDto();
+        Address address = accountUpdateDto.getAddress();
+
+        String password = accountDto.getPassword() == null ?
+                null : passwordEncoder.encode(accountDto.getPassword());
         AccountFullDto accountFullDto = AccountFullDto.builder()
                 .address(address)
                 .username(accountDto.getUsername())
                 .email(accountDto.getEmail())
-                .password(passwordEncoder.encode(accountDto.getPassword())).build();
+                .password(password).build();
 
         return ResponseEntity.ok(accountService.updateAccount(accountFullDto));
     }
@@ -105,6 +108,7 @@ public class AccountController {
 
     @Scheduled(fixedRate = 1800000)
     @CacheEvict(allEntries = true)
+    @ExcludeFromJacocoGeneratedReport
     public void emptyCache () {
     }
 

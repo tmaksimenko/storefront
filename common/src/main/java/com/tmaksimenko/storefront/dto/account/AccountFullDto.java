@@ -7,13 +7,19 @@ import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.account.Address;
 import com.tmaksimenko.storefront.model.account.Cart;
 import com.tmaksimenko.storefront.model.base.Audit;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
 @Data
-@SuperBuilder
+@ToString(callSuper = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@SuperBuilder(toBuilder = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AccountFullDto extends AccountDto {
 

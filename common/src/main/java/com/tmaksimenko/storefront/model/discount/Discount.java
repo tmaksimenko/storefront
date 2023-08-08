@@ -5,10 +5,12 @@ import com.tmaksimenko.storefront.model.base.BaseEntity;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 @MappedSuperclass
 @Data
+@ToString(callSuper = true)
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 public class Discount extends BaseEntity {

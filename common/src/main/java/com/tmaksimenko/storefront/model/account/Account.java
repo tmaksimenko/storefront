@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Set;
@@ -17,6 +18,7 @@ import java.util.Set;
 @Data
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
+@ToString(exclude = "orders")
 @EqualsAndHashCode(exclude = "orders")
 public class Account extends BaseEntity {
 
@@ -38,16 +40,14 @@ public class Account extends BaseEntity {
     @OneToMany(mappedBy = "account")
     Set<Order> orders;
 
-    @Transient
     public AccountFullDto toDto () {
         return AccountFullDto.builder()
                 .username(this.getUsername())
                 .email(this.getEmail())
+                .password(this.getPassword())
                 .address(this.getAddress())
                 .role(this.getRole())
                 .audit(this.getAudit())
-                .cart(this.getCart())
-                .orderGetDtos(this.getOrders().stream().map(Order::toPlainDto).toList())
                 .build();
     }
 

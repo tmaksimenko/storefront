@@ -4,10 +4,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-public class StorefrontApplicationTest {
+public class StorefrontApplicationIntegrationTest {
 
     @Test
-    public void contextLoads() {
+    public void contextLoads () {
+        StorefrontApplication.main(new String[] {});
     }
 
 }

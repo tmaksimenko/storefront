@@ -2,9 +2,9 @@ package com.tmaksimenko.storefront.dto;
 
 import com.tmaksimenko.storefront.dto.product.ProductDto;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
+@Data
 @Builder
 public class OrderProductDto {
 

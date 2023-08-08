@@ -1,7 +1,7 @@
 package com.tmaksimenko.storefront.controller.admin;
 
+import com.tmaksimenko.storefront.annotation.ExcludeFromJacocoGeneratedReport;
 import com.tmaksimenko.storefront.dto.product.ProductCreateDto;
-import com.tmaksimenko.storefront.dto.product.ProductDto;
 import com.tmaksimenko.storefront.model.Product;
 import com.tmaksimenko.storefront.service.product.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,8 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.server.ResponseStatusException;
 
 @Tag(name = "Administrator Utilities")
 @RestController
@@ -33,22 +32,6 @@ public class AdminProductController {
 
     final ProductService productService;
 
-    @Operation(summary = "Fetch all products")
-    @Cacheable("products")
-    @GetMapping("/all")
-    public ResponseEntity<List<ProductDto>> findAll() {
-        List<Product> products = productService.findAll();
-        List<ProductDto> productDtos = products.stream().map(Product::toDto).toList();
-        return new ResponseEntity<>(productDtos, HttpStatus.OK);
-    }
-
-    @Operation(summary = "Fetch individual product")
-    @Cacheable
-    @GetMapping("/view")
-    public ResponseEntity<Product> viewProduct (@RequestParam Long id) {
-        return ResponseEntity.of(productService.findById(id));
-    }
-
     @Operation(summary = "Create product", parameters =
                     @Parameter(
                             in = ParameterIn.HEADER,
@@ -58,6 +41,11 @@ public class AdminProductController {
     @Cacheable
     @PostMapping("/add")
     public ResponseEntity<Product> createProduct (@RequestBody ProductCreateDto productCreateDto) {
+        if (productCreateDto.getName() == null ||
+            productCreateDto.getBrand() == null ||
+            productCreateDto.getPrice() == null ||
+            productCreateDto.getWeight() == null)
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ALL FIELDS REQUIRED");
         return ResponseEntity.ok(productService.createProduct(productCreateDto));
     }
 
@@ -86,6 +74,7 @@ public class AdminProductController {
 
     @Scheduled(fixedRate = 1800000)
     @CacheEvict(allEntries = true)
+    @ExcludeFromJacocoGeneratedReport
     public void emptyCache () {
     }
 

@@ -1,7 +1,9 @@
 package com.tmaksimenko.storefront.controller.admin;
 
+import com.tmaksimenko.storefront.annotation.ExcludeFromJacocoGeneratedReport;
 import com.tmaksimenko.storefront.dto.discount.DiscountCreateDto;
 import com.tmaksimenko.storefront.dto.discount.DiscountDto;
+import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.exception.DiscountNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
 import com.tmaksimenko.storefront.model.base.Audit;
@@ -54,14 +56,13 @@ public class AdminDiscountController {
                             description = "JWT Token, can be generated in auth controller /auth"))
     @GetMapping("/all")
     public ResponseEntity<List<DiscountDto>> viewAll() {
-        List<? super Discount> discounts = discountService.findAllDiscounts();
+        List<? super Discount> discounts = discountService.findAll();
 
         List<DiscountDto> discountDtos = discounts.stream().map(x -> {
             if (x.getClass().equals(GeneralDiscount.class))
                 return ((GeneralDiscount) x).toDto();
-            if (x.getClass().equals(ProductDiscount.class))
+            else // x.getClass().equals(ProductDiscount.class)
                 return ((ProductDiscount) x).toDto();
-            return ((Discount) x).toDto();
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(discountDtos);
@@ -91,13 +92,13 @@ public class AdminDiscountController {
                             description = "JWT Token, can be generated in auth controller /auth"))
     @Cacheable
     @PostMapping("/add")
-    public ResponseEntity<DiscountDto> createDiscount (DiscountCreateDto discountCreateDto) {
+    public ResponseEntity<DiscountDto> createDiscount (@RequestBody DiscountCreateDto discountCreateDto) {
         Audit audit = Audit.builder().createdOn(LocalDateTime.now()).createdBy(
                 SecurityContextHolder.getContext().getAuthentication().getName()).build();
 
         if (ObjectUtils.isEmpty(discountCreateDto.getProductId())) {
             GeneralDiscount discount = GeneralDiscount.builder()
-                    .role(discountCreateDto.getRole())
+                    .role(Role.valueOf(discountCreateDto.getRole()))
                     .audit(audit)
                     .percent(discountCreateDto.getPercent()).build();
             return ResponseEntity.ok(discountService.createDiscount(discount).toDto());
@@ -122,15 +123,12 @@ public class AdminDiscountController {
                             description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/delete")
     public ResponseEntity<Discount> removeDiscount (@RequestParam Long id) {
-        try {
-            return ResponseEntity.ok(discountService.deleteDiscount(id));
-        } catch (DiscountNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Discount NOT FOUND", e);
-        }
+        return ResponseEntity.ok(discountService.deleteDiscount(id));
     }
 
     @Scheduled(fixedRate = 1800000)
     @CacheEvict(allEntries = true)
+    @ExcludeFromJacocoGeneratedReport
     public void emptyCache () {
     }
 }

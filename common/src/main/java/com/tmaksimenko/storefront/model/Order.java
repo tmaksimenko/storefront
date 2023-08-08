@@ -1,15 +1,13 @@
 package com.tmaksimenko.storefront.model;
 
 import com.tmaksimenko.storefront.dto.order.OrderGetDto;
+import com.tmaksimenko.storefront.dto.payment.PaymentGetDto;
 import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.base.BaseEntity;
 import com.tmaksimenko.storefront.model.orderProduct.OrderProduct;
 import com.tmaksimenko.storefront.model.payment.Payment;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.util.HashSet;
@@ -19,8 +17,9 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name="orders")
 @Data
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 @NoArgsConstructor
+@ToString(exclude = "orderProducts")
 @EqualsAndHashCode(exclude = "orderProducts")
 public class Order extends BaseEntity {
 
@@ -56,17 +55,13 @@ public class Order extends BaseEntity {
         }
     }
 
-    @SuppressWarnings("unused")
-    public void clear () {
-        orderProducts.clear();
-    }
-
     public OrderGetDto toPlainDto() {
+        PaymentGetDto pgd = this.getPayment() == null ? null : this.getPayment().toDto();
          return OrderGetDto.builder()
                 .id(this.getId())
                 .username(this.account.getUsername())
                 .items(this.orderProducts.stream().map(OrderProduct::toDto).collect(Collectors.toList()))
-                 .paymentGetDto(this.getPayment().toDto())
+                .paymentGetDto(pgd)
                 .build();
     }
 

@@ -1,6 +1,7 @@
 package com.tmaksimenko.storefront.service.order;
 
 import com.tmaksimenko.storefront.dto.order.CartDto;
+import com.tmaksimenko.storefront.dto.order.OrderGetDto;
 import com.tmaksimenko.storefront.enums.payment.PaymentStatus;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
@@ -23,13 +24,12 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
-import static org.apache.commons.lang3.ObjectUtils.isEmpty;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class OrderServiceImpl implements OrderService {
+public class OrderServiceImplementation implements OrderService {
 
     final OrderRepository orderRepository;
 
@@ -37,8 +37,8 @@ public class OrderServiceImpl implements OrderService {
     final ProductService productService;
 
     @Override
-    public List<Order> findAll () {
-        return orderRepository.findAll();
+    public List<OrderGetDto> findAll () {
+        return orderRepository.findAll().stream().map(Order::toFullDto).collect(Collectors.toList());
     }
 
     @Override
@@ -49,16 +49,17 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order cartToOrder () {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Optional<Account> optionalAccount = accountService.findByUsername(username);
-        if (optionalAccount.isEmpty())
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
-        if (isEmpty(optionalAccount.get().getCart()))
+        Account account = accountService.findByUsername(username).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException()));
+        Cart cart = account.getCart();
+        if (cart == null ||
+           (cart.getItems() == null ||
+            cart.getPrice() == null ||
+            cart.getPayment() == null))
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "CART IS EMPTY");
 
-        Cart cart = optionalAccount.get().getCart();
-
         Order order = Order.builder()
-                .account(optionalAccount.get())
+                .account(account)
                 .audit(Audit.builder()
                         .createdOn(LocalDateTime.now())
                         .createdBy(username).build())

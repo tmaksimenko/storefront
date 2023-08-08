@@ -4,11 +4,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.model.base.Audit;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
 @Data
+@NoArgsConstructor
 @SuperBuilder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AccountCreateDto extends AccountDto {

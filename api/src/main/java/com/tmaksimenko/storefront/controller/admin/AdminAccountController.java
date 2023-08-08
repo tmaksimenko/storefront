@@ -1,9 +1,10 @@
 package com.tmaksimenko.storefront.controller.admin;
 
+import com.tmaksimenko.storefront.annotation.ExcludeFromJacocoGeneratedReport;
 import com.tmaksimenko.storefront.dto.account.AccountCreateDto;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
+import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.exception.AccountNotFoundException;
-import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.service.account.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,7 +55,7 @@ public class AdminAccountController {
                 x -> (AccountFullDto)(AccountFullDto.builder()
                         .username(x.getUsername())
                         .email(x.getEmail())
-                        .orderGetDtos(x.getOrders().stream().map(Order::toPlainDto).toList())
+                        .role(x.getRole())
                         .build())
             ).toList();
         return ResponseEntity.ok(accountFullDtos);
@@ -86,6 +88,11 @@ public class AdminAccountController {
     @PostMapping("/add")
     public ResponseEntity<AccountFullDto> addAccount(@RequestBody AccountCreateDto accountCreateDto) {
         accountCreateDto.setPassword(passwordEncoder.encode(accountCreateDto.getPassword()));
+
+        if (Arrays.stream(Role.values()).noneMatch((role) ->
+                role.equals(accountCreateDto.getRole())))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ROLE NOT FOUND");
+
         return ResponseEntity.ok(accountService.createAccount
                 (accountCreateDto.toFullDto(
                         SecurityContextHolder.getContext().getAuthentication().getName()))
@@ -100,8 +107,10 @@ public class AdminAccountController {
                             description = "JWT Token, can be generated in auth controller /auth"))
     @Cacheable
     @PutMapping("/update")
-    @SuppressWarnings("all")
     public ResponseEntity<AccountFullDto> updateAccount(@RequestBody AccountFullDto accountFullDto) {
+        accountFullDto.setPassword(accountFullDto.getPassword() == null ?
+                null : passwordEncoder.encode(accountFullDto.getPassword()));
+
         return ResponseEntity.ok(accountService.updateAccount(accountFullDto).toDto());
     }
 
@@ -118,6 +127,7 @@ public class AdminAccountController {
 
     @Scheduled(fixedRate = 1800000)
     @CacheEvict(allEntries = true)
+    @ExcludeFromJacocoGeneratedReport
     public void emptyCache () {
     }
 

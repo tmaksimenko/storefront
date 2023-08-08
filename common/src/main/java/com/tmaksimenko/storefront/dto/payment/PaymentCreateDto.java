@@ -5,12 +5,10 @@ import com.tmaksimenko.storefront.enums.payment.PaymentStatus;
 import com.tmaksimenko.storefront.model.payment.Payment;
 import com.tmaksimenko.storefront.model.payment.PaymentInfo;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
-@Builder
+@Data
+@Builder(toBuilder = true)
 public class PaymentCreateDto {
 
     PaymentInfo paymentInfo;

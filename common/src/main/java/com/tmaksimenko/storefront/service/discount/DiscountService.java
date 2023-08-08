@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DiscountService {
-    List<? super Discount> findAllDiscounts ();
+    List<? super Discount> findAll();
 
     Optional<? extends Discount> findById (Long id);
 

@@ -1,6 +1,7 @@
 package com.tmaksimenko.storefront.auth;
 
 
+import com.tmaksimenko.storefront.annotation.ExcludeFromJacocoGeneratedReport;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +20,7 @@ import java.io.IOException;
 
 @RequiredArgsConstructor
 @Component
+@ExcludeFromJacocoGeneratedReport
 public class AuthenticationTokenFilter extends OncePerRequestFilter {
 
     final JwtUtils jwtUtils;

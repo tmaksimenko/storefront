@@ -21,13 +21,13 @@ import java.util.Optional;
 @Service
 @Transactional
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class DiscountServiceImpl implements DiscountService{
+public class DiscountServiceImplementation implements DiscountService{
 
     final GeneralDiscountRepository generalDiscountRepository;
     final ProductDiscountRepository productDiscountRepository;
 
     @Override
-    public List<Discount> findAllDiscounts () {
+    public List<Discount> findAll() {
         List<Discount> discounts = new ArrayList<>();
         discounts.addAll(generalDiscountRepository.findAll());
         discounts.addAll(productDiscountRepository.findAll());
@@ -42,7 +42,7 @@ public class DiscountServiceImpl implements DiscountService{
 
     @Override
     public List<GeneralDiscount> findByRole (Role role) {
-        return generalDiscountRepository.findByRole(role.name());
+        return generalDiscountRepository.findByRole(role);
     }
 
     @Override

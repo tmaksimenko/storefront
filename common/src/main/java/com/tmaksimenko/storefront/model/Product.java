@@ -13,10 +13,11 @@ import java.util.Set;
 @Entity
 @Table(name="products")
 @Data
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(exclude = "orderProducts")
+@ToString(exclude = "orderProducts")
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "default_seq")

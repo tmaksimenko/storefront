@@ -1,5 +1,6 @@
 package com.tmaksimenko.storefront.controller.admin;
 
+import com.tmaksimenko.storefront.annotation.ExcludeFromJacocoGeneratedReport;
 import com.tmaksimenko.storefront.dto.order.CartDto;
 import com.tmaksimenko.storefront.dto.order.OrderGetDto;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
@@ -48,9 +49,8 @@ public class AdminOrderController {
                             description = "JWT Token, can be generated in auth controller /auth"))
     @GetMapping("/all")
     public ResponseEntity<List<OrderGetDto>> viewAll() {
-        List<Order> orders = orderService.findAll();
-        List<OrderGetDto> orderGetDtos = orders.stream().map(Order::toFullDto).toList();
-        return ResponseEntity.ok(orderGetDtos);
+        List<OrderGetDto> orders = orderService.findAll();
+        return ResponseEntity.ok(orders);
     }
 
     @Operation(summary = "View a specific order", parameters = {
@@ -92,18 +92,14 @@ public class AdminOrderController {
     public ResponseEntity<String> updateOrder(@RequestParam Long id, @RequestBody Map<String, Integer> params) {
         Optional<Order> optionalOrder = orderService.findById(id);
         if (optionalOrder.isEmpty())
-            return new ResponseEntity<>("ORDER NOT FOUND", HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException());
 
         Order order = optionalOrder.get();
 
         Map<Long, Integer> products;
-        try {
-            products = params.entrySet().stream().collect(Collectors.toMap(
-                    (param) -> Long.valueOf(param.getKey()),
-                    Map.Entry::getValue));
-        } catch (RuntimeException ex) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "INVALID PRODUCT ID", ex);
-        }
+        products = params.entrySet().stream().collect(Collectors.toMap(
+                (param) -> Long.valueOf(param.getKey()),
+                Map.Entry::getValue));
 
         Map<Long, Integer> currentProductIds = order.getOrderProducts().stream()
                 .collect(Collectors.toMap(
@@ -144,12 +140,13 @@ public class AdminOrderController {
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/delete")
-    public ResponseEntity<Order> removeOrder(@RequestParam Long id) {
-        return ResponseEntity.ok(orderService.deleteOrder(id));
+    public ResponseEntity<OrderGetDto> removeOrder(@RequestParam Long id) {
+        return ResponseEntity.ok(orderService.deleteOrder(id).toFullDto());
     }
 
     @Scheduled(fixedRate = 1800000)
     @CacheEvict(allEntries = true)
+    @ExcludeFromJacocoGeneratedReport
     public void emptyCache () {
     }
 }

@@ -1,11 +1,11 @@
 package com.tmaksimenko.storefront.controller.user;
 
+import com.tmaksimenko.storefront.annotation.ExcludeFromJacocoGeneratedReport;
 import com.tmaksimenko.storefront.dto.order.OrderGetDto;
-import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
-import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.Order;
+import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.orderProduct.OrderProduct;
 import com.tmaksimenko.storefront.service.account.AccountService;
 import com.tmaksimenko.storefront.service.order.OrderService;
@@ -51,7 +51,7 @@ public class OrderController {
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth")
             })
-    @GetMapping("/viewall")
+    @GetMapping("/all")
     public ResponseEntity<List<OrderGetDto>> viewAll() {
         List<Order> orders = orderService.findByLogin(SecurityContextHolder.getContext().getAuthentication().getName());
         List<OrderGetDto> orderGetDtos = orders.stream().map(Order::toFullDto).toList();
@@ -72,13 +72,9 @@ public class OrderController {
         if (optionalOrder.isEmpty())
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException());
 
-        Optional<Account> optionalAccount = accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+        Account account = accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow();
 
-        if (optionalAccount.isEmpty())
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
-
-        if (!optionalAccount.get()
-                .getOrders().contains(optionalOrder.get()))
+        if (!account.getOrders().contains(optionalOrder.get()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ORDER NOT YOURS");
 
         return new ResponseEntity<>(optionalOrder.get().toFullDto(), HttpStatus.OK);
@@ -90,7 +86,6 @@ public class OrderController {
                             name = "X-Auth-Token",
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
-    @Cacheable
     @PostMapping("/submit")
     public ResponseEntity<OrderGetDto> submitOrder () {
         return ResponseEntity.ok(orderService.cartToOrder().toFullDto());
@@ -102,12 +97,11 @@ public class OrderController {
                             name = "X-Auth-Token",
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
-    @Cacheable
     @PutMapping("/update")
     public ResponseEntity<String> updateOrder(@RequestParam Long id, @RequestBody Map<String, Integer> params) {
         Optional<Order> optionalOrder = orderService.findById(id);
         if (optionalOrder.isEmpty())
-            return new ResponseEntity<>("ORDER NOT FOUND", HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException());
 
         if (!accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get()
                 .getOrders().contains(optionalOrder.get()))
@@ -116,13 +110,9 @@ public class OrderController {
         Order order = optionalOrder.get();
 
         Map<Long, Integer> products;
-        try {
-            products = params.entrySet().stream().collect(Collectors.toMap(
-                    (param) -> Long.valueOf(param.getKey()),
-                    Map.Entry::getValue));
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "INVALID PRODUCT ID", e);
-        }
+        products = params.entrySet().stream().collect(Collectors.toMap(
+                (param) -> Long.valueOf(param.getKey()),
+                Map.Entry::getValue));
 
         Map<Long, Integer> currentProductIds = order.getOrderProducts().stream()
                 .collect(Collectors.toMap(
@@ -152,7 +142,7 @@ public class OrderController {
         );
 
         return ResponseEntity.ok(String.format(
-                "UPDATED PRODUCTS -> %s ADDED PRODUCTS -> %s NOT FOUND -> %s",
+                "UPDATED PRODUCTS -> %s, ADDED PRODUCTS -> %s, NOT FOUND -> %s",
                 updatedProductIds, addedProductIds, notFoundProductIds));
     }
 
@@ -163,15 +153,17 @@ public class OrderController {
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/delete")
-    public ResponseEntity<Order> removeOrder(@RequestParam Long id) {
-        if (! accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(AccountNotFoundException::new)
-                .getOrders().contains(orderService.findById(id).orElseThrow(OrderNotFoundException::new)))
+    public ResponseEntity<OrderGetDto> removeOrder(@RequestParam Long id) {
+        if (! accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow()
+                .getOrders().contains(orderService.findById(id).orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException()))))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ORDER NOT YOURS");
-        return ResponseEntity.ok(orderService.deleteOrder(id));
+        return ResponseEntity.ok(orderService.deleteOrder(id).toFullDto());
     }
 
     @Scheduled(fixedRate = 1800000)
     @CacheEvict(allEntries = true)
+    @ExcludeFromJacocoGeneratedReport
     public void emptyCache () {
     }
 

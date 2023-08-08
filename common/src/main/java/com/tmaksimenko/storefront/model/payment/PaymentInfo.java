@@ -3,9 +3,15 @@ package com.tmaksimenko.storefront.model.payment;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Embeddable
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class PaymentInfo {
 
@@ -14,9 +20,9 @@ public class PaymentInfo {
     @Embedded
     ExpiryDate expiry;
 
-    int securityCode;
+    Integer securityCode;
 
-    @SuppressWarnings("all") // refuses to see column card_postal_code
+    @SuppressWarnings("JpaDataSourceORMInspection") // refuses to see column card_postal_code
     @Column(name = "card_postal_code")
     String postalCode;
 }
