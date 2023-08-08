@@ -162,11 +162,12 @@ public class OrderController {
                             required = true,
                             description = "JWT Token, can be generated in auth controller /auth"))
     @DeleteMapping("/delete")
-    public ResponseEntity<Order> removeOrder(@RequestParam Long id) {
-        if (! accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow(AccountNotFoundException::new)
-                .getOrders().contains(orderService.findById(id).orElseThrow(OrderNotFoundException::new)))
+    public ResponseEntity<OrderGetDto> removeOrder(@RequestParam Long id) {
+        if (! accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow()
+                .getOrders().contains(orderService.findById(id).orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException()))))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ORDER NOT YOURS");
-        return ResponseEntity.ok(orderService.deleteOrder(id));
+        return ResponseEntity.ok(orderService.deleteOrder(id).toFullDto());
     }
 
     @Scheduled(fixedRate = 1800000)
