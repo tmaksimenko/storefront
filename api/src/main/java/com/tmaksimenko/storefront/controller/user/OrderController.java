@@ -2,11 +2,10 @@ package com.tmaksimenko.storefront.controller.user;
 
 import com.tmaksimenko.storefront.annotation.ExcludeFromJacocoGeneratedReport;
 import com.tmaksimenko.storefront.dto.order.OrderGetDto;
-import com.tmaksimenko.storefront.exception.AccountNotFoundException;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
 import com.tmaksimenko.storefront.exception.ProductNotFoundException;
-import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.Order;
+import com.tmaksimenko.storefront.model.account.Account;
 import com.tmaksimenko.storefront.model.orderProduct.OrderProduct;
 import com.tmaksimenko.storefront.service.account.AccountService;
 import com.tmaksimenko.storefront.service.order.OrderService;
@@ -73,13 +72,9 @@ public class OrderController {
         if (optionalOrder.isEmpty())
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ORDER NOT FOUND", new OrderNotFoundException());
 
-        Optional<Account> optionalAccount = accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
+        Account account = accountService.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).orElseThrow();
 
-        if (optionalAccount.isEmpty())
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "ACCOUNT NOT FOUND", new AccountNotFoundException());
-
-        if (!optionalAccount.get()
-                .getOrders().contains(optionalOrder.get()))
+        if (!account.getOrders().contains(optionalOrder.get()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ORDER NOT YOURS");
 
         return new ResponseEntity<>(optionalOrder.get().toFullDto(), HttpStatus.OK);
@@ -115,13 +110,9 @@ public class OrderController {
         Order order = optionalOrder.get();
 
         Map<Long, Integer> products;
-        try {
-            products = params.entrySet().stream().collect(Collectors.toMap(
-                    (param) -> Long.valueOf(param.getKey()),
-                    Map.Entry::getValue));
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "INVALID PRODUCT ID", e);
-        }
+        products = params.entrySet().stream().collect(Collectors.toMap(
+                (param) -> Long.valueOf(param.getKey()),
+                Map.Entry::getValue));
 
         Map<Long, Integer> currentProductIds = order.getOrderProducts().stream()
                 .collect(Collectors.toMap(

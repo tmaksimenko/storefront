@@ -97,13 +97,9 @@ public class AdminOrderController {
         Order order = optionalOrder.get();
 
         Map<Long, Integer> products;
-        try {
-            products = params.entrySet().stream().collect(Collectors.toMap(
-                    (param) -> Long.valueOf(param.getKey()),
-                    Map.Entry::getValue));
-        } catch (RuntimeException ex) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "INVALID PRODUCT ID", ex);
-        }
+        products = params.entrySet().stream().collect(Collectors.toMap(
+                (param) -> Long.valueOf(param.getKey()),
+                Map.Entry::getValue));
 
         Map<Long, Integer> currentProductIds = order.getOrderProducts().stream()
                 .collect(Collectors.toMap(
