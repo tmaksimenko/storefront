@@ -116,12 +116,50 @@ public class RegistrationControllerTest {
     }
 
     @Test
-    @DisplayName("Failed addAccount")
-    public void test_failed_addAccount () throws Exception {
+    @DisplayName("Failed addAccount - missing password")
+    public void test_failed_addAccount_missingPassword () throws Exception {
         // given
         AccountDto accountDto1 = AccountDto.builder()
                 .username(accountDto.getUsername())
                 .email(accountDto.getEmail()).build();
+
+        // when, then
+        this.mockMvc.perform(post("/register")
+                        .content(new ObjectMapper().valueToTree(accountDto1).toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print()).andExpect(status().isForbidden())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof ResponseStatusException))
+                .andExpect(result -> assertEquals(
+                        "403 FORBIDDEN \"ACCOUNT REQUIRES ALL FIELDS\"",
+                        Objects.requireNonNull(result.getResolvedException()).getMessage()));
+    }
+
+    @Test
+    @DisplayName("Failed addAccount - missing username")
+    public void test_failed_addAccount_missingUsername () throws Exception {
+        // given
+        AccountDto accountDto1 = AccountDto.builder()
+                .password(accountDto.getPassword())
+                .email(accountDto.getEmail()).build();
+
+        // when, then
+        this.mockMvc.perform(post("/register")
+                        .content(new ObjectMapper().valueToTree(accountDto1).toString())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print()).andExpect(status().isForbidden())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof ResponseStatusException))
+                .andExpect(result -> assertEquals(
+                        "403 FORBIDDEN \"ACCOUNT REQUIRES ALL FIELDS\"",
+                        Objects.requireNonNull(result.getResolvedException()).getMessage()));
+    }
+
+    @Test
+    @DisplayName("Failed addAccount - missing email")
+    public void test_failed_addAccount_missingEmail () throws Exception {
+        // given
+        AccountDto accountDto1 = AccountDto.builder()
+                .username(accountDto.getUsername())
+                .password(accountDto.getPassword()).build();
 
         // when, then
         this.mockMvc.perform(post("/register")
