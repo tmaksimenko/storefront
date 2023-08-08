@@ -4,12 +4,16 @@ import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
 import com.tmaksimenko.storefront.dto.order.CartDto;
 import com.tmaksimenko.storefront.dto.order.CartItemDto;
+import com.tmaksimenko.storefront.dto.order.OrderGetDto;
 import com.tmaksimenko.storefront.dto.payment.PaymentCreateDto;
 import com.tmaksimenko.storefront.dto.product.ProductCreateDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.enums.payment.PaymentProvider;
+import com.tmaksimenko.storefront.enums.payment.PaymentStatus;
 import com.tmaksimenko.storefront.model.Order;
 import com.tmaksimenko.storefront.model.Product;
+import com.tmaksimenko.storefront.model.account.Account;
+import com.tmaksimenko.storefront.model.account.Cart;
 import com.tmaksimenko.storefront.model.payment.ExpiryDate;
 import com.tmaksimenko.storefront.model.payment.PaymentInfo;
 import com.tmaksimenko.storefront.service.account.AccountService;
@@ -19,24 +23,25 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -70,14 +75,17 @@ public class OrderIntegrationTest {
 
     CartDto cartDto;
 
-    Product product;
+    Product product, product1;
 
-    AccountFullDto adminFullDto;
+    AccountFullDto adminFullDto, testAccountDto;
 
     HttpHeaders headers;
 
     @BeforeAll
     public void setupAll () throws JSONException {
+        for (Account account : accountService.findAll())
+            accountService.deleteAccount(account.getId());
+
         baseURL = "http://localhost:" + port;
         AccountDto adminDto = AccountDto.builder()
                 .username("testAdmin")
@@ -87,6 +95,13 @@ public class OrderIntegrationTest {
         adminFullDto = adminDto.toFullDto(Role.ROLE_ADMIN);
         adminFullDto.setPassword(passwordEncoder.encode(adminDto.getPassword()));
         accountService.createAccount(adminFullDto);
+
+        testAccountDto = AccountFullDto.builder()
+                .username("testUser")
+                .email("testMail@mail.com")
+                .password(passwordEncoder.encode("password"))
+                .role(Role.ROLE_USER)
+                .build();
 
         Map<String, String> authRequestMap = new HashMap<>();
         authRequestMap.put("login", adminDto.getUsername());
@@ -99,6 +114,13 @@ public class OrderIntegrationTest {
                         .brand("brand")
                         .price(10.0)
                         .weight(1.0).build());
+
+        product1 = productService.createProduct(
+                ProductCreateDto.builder()
+                        .name("differentName")
+                        .brand("differentBrand")
+                        .price(15.0)
+                        .weight(2.0).build());
 
         cartDto = CartDto.builder()
                 .paymentCreateDto(PaymentCreateDto.builder()
@@ -126,10 +148,21 @@ public class OrderIntegrationTest {
 
     @BeforeEach
     public void setup () {
-        List<Order> orders = orderService.findAll();
-        for (Order order : orders)
+        List<OrderGetDto> orders = orderService.findAll();
+        for (OrderGetDto order : orders)
             orderService.deleteOrder(order.getId());
-        orderService.createOrder(cartDto, adminFullDto.getUsername());
+        List<Account> accounts = accountService.findAll();
+        for (Account account : accounts)
+            accountService.deleteAccount(account.getId());
+
+        accountService.createAccount(adminFullDto);
+        order = orderService.createOrder(cartDto, adminFullDto.getUsername());
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        adminFullDto.getUsername(),
+                        adminFullDto.getPassword(),
+                        AuthorityUtils.createAuthorityList("ROLE_ADMIN")));
     }
 
     private String status (int code) {
@@ -140,237 +173,420 @@ public class OrderIntegrationTest {
         return String.format("\"error\":\"%s\"", message);
     }
 
-//    @Test
-//    @DisplayName("Successful view own order")
-//    public void test_successful_viewSelfOrder () {
-//        // when
-//        Order result = this.restTemplate.exchange(
-//                baseURL + "/order/view", HttpMethod.GET,
-//                new HttpEntity<>(headers), Order.class).getBody();
-//
-//        // then
-//        assertThat(result).isInstanceOf(Order.class).extracting("username", "email", "role")
-//                .containsExactly(adminFullDto.getUsername(), adminFullDto.getEmail(), adminFullDto.getRole());
-//    }
+    @Test
+    @DisplayName("Successful self viewAll")
+    public void test_successful_viewAll () {
+        // when
+        @SuppressWarnings("rawtypes")
+        List result = this.restTemplate.exchange(baseURL + "/orders/all", HttpMethod.GET,
+                new HttpEntity<>(headers), List.class).getBody();
 
-//    @Test
-//    @DisplayName("Successful update own order - core fields")
-//    public void test_successful_updateSelfOrder_core () {
-//        // given
-//        OrderUpdateDto updatedAdmin = new OrderUpdateDto(
-//                OrderDto.builder().email("newAdminMail@mail.com").build(),
-//                new Address());
-//
-//        // when
-//        Order response = this.restTemplate.exchange(baseURL + "/order/update", HttpMethod.PUT,
-//                new HttpEntity<>(updatedAdmin, headers), Order.class).getBody();
-//
-//        // then
-//        assertThat(response).isInstanceOf(Order.class).extracting("username", "email", "role")
-//                .containsExactly(adminFullDto.getUsername(), updatedAdmin.getOrderDto().getEmail(),
-//                        adminFullDto.getRole());
-//    }
-//
-//    @Test
-//    @DisplayName("Successful update own order - address")
-//    public void test_successful_updateSelfOrder_address () {
-//        // given
-//        Address address = Address.builder()
-//                .streetAddress("27 Mobile Dr")
-//                .postalCode("M1M1M1")
-//                .country("Canada")
-//                .build();
-//
-//        OrderUpdateDto orderUpdateDto = new OrderUpdateDto(OrderDto.builder().build(), address);
-//
-//        // when
-//        Order response = this.restTemplate.exchange(baseURL + "/order/update", HttpMethod.PUT,
-//                new HttpEntity<>(orderUpdateDto, headers), Order.class).getBody();
-//
-//        // then
-//        assertThat(response).isInstanceOf(Order.class)
-//                .extracting("username", "email", "role", "address")
-//                .containsExactly(adminFullDto.getUsername(), adminFullDto.getEmail(),
-//                        adminFullDto.getRole(), address);
-//    }
-//
-//    @Test
-//    @DisplayName("Failed update own order")
-//    public void test_failed_updateSelfOrder () {
-//        // given
-//        OrderUpdateDto orderUpdateDto = new OrderUpdateDto(OrderDto.builder().build(), new Address());
-//
-//        // when
-//        String response = this.restTemplate.exchange(baseURL + "/order/update", HttpMethod.PUT,
-//                new HttpEntity<>(orderUpdateDto, headers), String.class).getBody();
-//
-//        // then
-//        assertThat(response).contains(status(403)).contains(error("Forbidden"));
-//    }
-//
-//    @Test
-//    @DisplayName("Successful delete own order")
-//    public void test_successful_deleteOrder () {
-//        // when
-//        Order deletedOrder = this.restTemplate.exchange(baseURL + "/order/delete", HttpMethod.DELETE,
-//                new HttpEntity<>(headers), Order.class).getBody();
-//
-//        // then
-//        List<Order> orders = orderService.findAll();
-//        assertThat(orders).isEmpty();
-//        assertThat(deletedOrder).isNotNull();
-//        assertThat(deletedOrder.toDto().toFullDto(deletedOrder.getRole())).isEqualTo(adminFullDto);
-//    }
-//
-//    @Test
-//    @DisplayName("Successful admin viewAll")
-//    public void test_successful_viewAll () {
-//        // when
-//        @SuppressWarnings("all") // intentional raw use of parameterized class
-//        List result = this.restTemplate.exchange(baseURL + "/admin/orders/all", HttpMethod.GET,
-//                new HttpEntity<>(headers), List.class).getBody();
-//
-//        // then
-//        assertThat(result).hasSize(1);
-//        assertThat(result.get(0)).extracting("username", "email", "role")
-//                .containsExactly(adminFullDto.getUsername(), adminFullDto.getEmail(), adminFullDto.getRole().name());
-//    }
-//
-//    @Test
-//    @DisplayName("Successful admin view")
-//    public void test_successful_admin_view () {
-//        // when
-//        OrderFullDto order = this.restTemplate.exchange(baseURL + "/admin/orders/view" + "?login=" + adminFullDto.getUsername(),
-//                HttpMethod.GET, new HttpEntity<>(headers), OrderFullDto.class).getBody();
-//
-//        // then
-//        assertThat(order).isNotNull().extracting("username", "email", "password", "role")
-//                .containsExactly(adminFullDto.getUsername(), adminFullDto.getEmail(),
-//                        adminFullDto.getPassword(), adminFullDto.getRole());
-//    }
-//
-//    @Test
-//    @DisplayName("Failed admin view")
-//    public void test_failed_admin_view () {
-//        // when
-//        String response = this.restTemplate.exchange(baseURL + "/admin/orders/view" + "?login=badLogin",
-//                HttpMethod.GET, new HttpEntity<>(headers), String.class).getBody();
-//
-//        // then
-//        assertThat(response).contains(status(404)).contains(error("Not Found"));
-//    }
-//
-//    @Test
-//    @DisplayName("Successful admin add")
-//    public void test_successful_admin_add () {
-//        // given
-//        OrderCreateDto orderCreateDto = OrderCreateDto.builder()
-//                .username(orderDto.getUsername())
-//                .email(orderDto.getEmail())
-//                .password(orderDto.getPassword())
-//                .role(Role.ROLE_USER).build();
-//
-//        // when
-//        Order newOrder = this.restTemplate.exchange(baseURL + "/admin/orders/add", HttpMethod.POST,
-//                new HttpEntity<>(orderCreateDto, headers), Order.class).getBody();
-//
-//        // then
-//        assertThat(newOrder).isNotNull();
-//        List<Order> orders = orderService.findAll();
-//
-//        assertThat(orders).hasSize(2);
-//        assertThat(orders.get(1)).extracting("username", "email", "password", "role")
-//                .containsExactly(newOrder.getUsername(), newOrder.getEmail(),
-//                        newOrder.getPassword(), newOrder.getRole());
-//        assertThat(orders.get(1).getAudit().getCreatedBy()).isEqualTo(adminFullDto.getUsername());
-//    }
-//
-//    @Test
-//    @DisplayName("Failed admin add - bad role")
-//    public void test_failed_admin_add_badRole () {
-//        // given
-//        class BadRoleOrderDto extends OrderDto {
-//            final String role;
-//            BadRoleOrderDto (String role) {this.role = role;}
-//        }
-//        BadRoleOrderDto badRoleOrderDto = new BadRoleOrderDto("ROLE_BAD_ROLE");
-//
-//        badRoleOrderDto.setUsername(orderDto.getUsername());
-//        badRoleOrderDto.setEmail(orderDto.getEmail());
-//        badRoleOrderDto.setPassword(orderDto.getPassword());
-//
-//        // when
-//        String response = this.restTemplate.exchange(baseURL + "/admin/orders/add", HttpMethod.POST,
-//                new HttpEntity<>(badRoleOrderDto, headers), String.class).getBody();
-//        System.out.println(response);
-//        // then
-//        assertThat(response).contains(status(403)).contains(error("Forbidden"));
-//    }
-//
-//    @Test
-//    @DisplayName("Failed admin add - order already exists")
-//    public void test_failed_admin_add_alreadyExists () {
-//        // when
-//        String response = this.restTemplate.exchange(baseURL + "/admin/orders/add", HttpMethod.POST,
-//                new HttpEntity<>(adminFullDto, headers), String.class).getBody();
-//
-//        // then
-//        assertThat(response).contains(status(403)).contains(error("Forbidden"));
-//    }
-//
-//    @Test
-//    @DisplayName("Successful admin update")
-//    public void test_successful_admin_update () {
-//        // given
-//        OrderFullDto orderFullDto = adminFullDto.toBuilder().password("newPassword").build();
-//
-//        // when
-//        Order response = this.restTemplate.exchange(baseURL + "/admin/orders/update", HttpMethod.PUT,
-//                new HttpEntity<>(orderFullDto, headers), Order.class).getBody();
-//
-//        // then
-//        assertThat(response).isNotNull().isInstanceOf(Order.class);
-//        assertThat(response.getPassword()).isNotEqualTo(adminFullDto.getPassword());
-//    }
-//
-//    @Test
-//    @DisplayName("Failed admin update")
-//    public void test_failed_admin_update () {
-//        // when
-//        String response = this.restTemplate.exchange(baseURL + "/admin/orders/update", HttpMethod.PUT,
-//                new HttpEntity<>(headers), String.class).getBody();
-//
-//        // then
-//        assertThat(response).contains(status(400)).contains(error("Bad Request"));
-//    }
-//
-//    @Test
-//    @DisplayName("Successful admin delete")
-//    public void test_successful_admin_delete () {
-//        // when
-//        Order deletedOrder = this.restTemplate.exchange(baseURL + "/admin/orders/delete?login="
-//                        + adminFullDto.getUsername(),
-//                HttpMethod.DELETE, new HttpEntity<>(headers), Order.class).getBody();
-//
-//        // then
-//        List<Order> orders = orderService.findAll();
-//        assertThat(orders).isEmpty();
-//        assertThat(deletedOrder).isNotNull();
-//        assertThat(deletedOrder.toDto().toFullDto(deletedOrder.getRole())).isEqualTo(adminFullDto);
-//    }
-//
-//    @Test
-//    @DisplayName("Failed admin delete")
-//    public void test_failed_admin_delete () {
-//        // when
-//        String response = this.restTemplate.exchange(baseURL + "/admin/orders/delete?login=badLogin",
-//                HttpMethod.DELETE, new HttpEntity<>(headers), String.class).getBody();
-//
-//        // then
-//        assertThat(response).contains(status(404)).contains(error("Not Found"));
-//    }
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).extracting("username").isEqualTo(adminFullDto.getUsername());
+        assertThat(result.get(0)).extracting("paymentGetDto").extracting("paymentStatus")
+                .isEqualTo(PaymentStatus.PAID.name());
+    }
+
+    @Test
+    @DisplayName("Failed self viewAll")
+    public void test_failed_viewAll () {
+        // given
+        orderService.deleteOrder(orderService.findAll().get(0).getId());
+
+        // when
+        @SuppressWarnings("rawtypes")
+        List result = this.restTemplate.exchange(baseURL + "/orders/all", HttpMethod.GET,
+                new HttpEntity<>(headers), List.class).getBody();
+
+        // then
+        assertThat(result).isNotNull().isEmpty();
+    }
+
+    @Test
+    @DisplayName("Successful view own order")
+    public void test_successful_viewSelfOrder () {
+        // given
+        long id = orderService.findAll().get(0).getId();
+
+        // when
+        OrderGetDto result = this.restTemplate.exchange(
+                baseURL + "/orders/view?id=" + id, HttpMethod.GET,
+                new HttpEntity<>(headers), OrderGetDto.class).getBody();
+
+        // then
+        assertThat(result).extracting("username").isEqualTo(adminFullDto.getUsername());
+        assertThat(result).extracting("paymentGetDto").extracting("paymentStatus")
+                .isEqualTo(PaymentStatus.PAID);
+    }
+    @Test
+    @DisplayName("Successful view own order")
+    public void test_failed_viewSelfOrder () {
+        // given
+        long badId = -1L;
+
+        // when
+        String result = this.restTemplate.exchange(
+                baseURL + "/orders/view?id=" + badId, HttpMethod.GET,
+                new HttpEntity<>(headers), String.class).getBody();
+
+        // then
+        assertThat(result).contains(status(404)).contains(error("Not Found"));
+    }
+
+    @Test
+    @DisplayName("Successful submit cart")
+    public void test_successful_submit () {
+        // given
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        adminFullDto.getUsername(),
+                        adminFullDto.getPassword(),
+                        AuthorityUtils.createAuthorityList("ROLE_ADMIN")
+                )
+        );
+        List<CartItemDto> cartItemDtos = List.of(new CartItemDto (product.getId(), 2));
+        CartDto cartDto1 = CartDto.builder()
+                .paymentCreateDto(cartDto.getPaymentCreateDto())
+                .cartItemDtos(cartItemDtos).build();
+
+        accountService.addCart(productService.createCart(cartDto1, adminFullDto.getUsername()));
+
+        // when
+        OrderGetDto placedOrder = this.restTemplate.exchange(baseURL + "/orders/submit", HttpMethod.POST,
+                new HttpEntity<>(headers), OrderGetDto.class).getBody();
+
+        // then
+        assertThat(placedOrder).isNotNull();
+        assertThat(orderService.findAll()).hasSize(2);
+        assertThat(placedOrder).extracting("username", "paymentGetDto")
+                .containsExactly(order.toFullDto().getUsername(), order.toFullDto().getPaymentGetDto());
+        assertThat(placedOrder.getItems().get(0)).isNotNull().extracting("quantity").isEqualTo(2);
+    }
+    @Test
+    @DisplayName("Failed submit cart")
+    public void test_failed_submit () {
+        System.out.println(adminFullDto);
+        System.out.println(accountService.findAll());
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/orders/submit", HttpMethod.POST,
+                new HttpEntity<>(headers), String.class).getBody();
+
+        System.out.println(response);
+        System.out.println(accountService.findAll());
+        // then
+        assertThat(orderService.findAll()).hasSize(1);
+        assertThat(response).contains(status(404)).contains(error("Not Found"));
+    }
+
+    @Test
+    @DisplayName("Successful updateOrder")
+    public void test_successful_updateOrder_all () {
+        // given
+        long badId = -1L;
+
+        Map<Long, Integer> body = new HashMap<>();
+        body.put(product.getId(), 2);
+        body.put(product1.getId(), 1);
+        body.put(badId, 1);
+
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/orders/update?id="+order.getId(), HttpMethod.PUT,
+                new HttpEntity<>(body, headers), String.class).getBody();
+        System.out.println(response);
+
+        // then
+        assertThat(response)
+                .contains("UPDATED PRODUCTS -> [" + product.getId())
+                .contains("ADDED PRODUCTS -> [" + product1.getId())
+                .contains("NOT FOUND -> [" + badId);
+    }
+
+    @Test
+    @DisplayName("Successful updateOrder - not updated")
+    public void test_successful_updateOrder_unUpdated () {
+        // given
+        Map<Long, Integer> body = new HashMap<>();
+        body.put(product.getId(), 1);
+
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/orders/update?id="+order.getId(), HttpMethod.PUT,
+                new HttpEntity<>(body, headers), String.class).getBody();
+        System.out.println(response);
+
+        // then
+        assertThat(response)
+                .contains("UPDATED PRODUCTS -> []")
+                .contains("ADDED PRODUCTS -> []")
+                .contains("NOT FOUND -> []");
+    }
+
+    @Test
+    @DisplayName("Failed updateOrder - not order owner")
+    public void test_failed_updateOrder_notOwner () throws JSONException {
+        // given
+        accountService.createAccount(testAccountDto);
+
+        Map<String, String> authRequestMap = new HashMap<>();
+        authRequestMap.put("login", testAccountDto.getUsername());
+        authRequestMap.put("password", "password");
+        HttpHeaders headers1 = getTokenAsHeaders(authRequestMap);
+
+        long badId = -1L;
+        Map<Long, Integer> body = new HashMap<>();
+        body.put(product.getId(), 2);
+        body.put(product1.getId(), 1);
+        body.put(badId, 1);
+
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/orders/update?id="+order.getId(), HttpMethod.PUT,
+                new HttpEntity<>(body, headers1), String.class).getBody();
+
+        // then
+        assertThat(response).contains(status(403)).contains(error("Forbidden"));
+    }
+
+    @Test
+    @DisplayName("Failed updateOrder - not found")
+    public void test_failed_updateOrder_notFound () {
+        // given
+        long badId = -1L;
+
+        Map<Long, Integer> body = Collections.singletonMap(product.getId(), 2);
+
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/orders/update?id="+badId, HttpMethod.PUT,
+                new HttpEntity<>(body, headers), String.class).getBody();
+
+        // then
+        assertThat(response).contains(status(404), error("Not Found"));
+    }
+
+    @Test
+    @DisplayName("Failed updateOrder - not owned by request maker")
+    public void test_failed_updateOrder_notOwned () {
+        // given
+        Account account = accountService.createAccount(testAccountDto);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        account.getUsername(),
+                        adminFullDto.getPassword()));
+
+        accountService.addCart(Cart.builder()
+                .items(Collections.singletonMap(product1.getId(), 1))
+                .price(15.2)
+                .payment(cartDto.getPaymentCreateDto().toPayment(PaymentStatus.NOT_PAID)).build());
+
+        orderService.cartToOrder();
+        long orderId = orderService.findByLogin(account.getUsername()).get(0).getId();
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        adminFullDto.getUsername(),
+                        adminFullDto.getPassword(),
+                        AuthorityUtils.createAuthorityList("ROLE_ADMIN")));
+
+        Map<Long, Integer> body = Collections.singletonMap(product.getId(), 2);
+
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/orders/update?id="+orderId, HttpMethod.PUT,
+                new HttpEntity<>(body, headers), String.class).getBody();
+        System.out.println(response);
+        // then
+        assertThat(response).contains(status(403)).contains(error("Forbidden"));
+    }
+
+    @Test
+    @DisplayName("Successful delete own order")
+    public void test_successful_deleteOrder () {
+        // when
+        OrderGetDto deletedOrder = this.restTemplate.exchange(baseURL + "/orders/delete?id=" + order.getId(), HttpMethod.DELETE,
+                new HttpEntity<>(headers), OrderGetDto.class).getBody();
+
+        // then
+        List<OrderGetDto> orders = orderService.findAll();
+        assertTrue(orders.stream().map(OrderGetDto::getId).noneMatch(x -> Objects.equals(x, order.getId())));
+        assertThat(deletedOrder).isNotNull();
+        assertThat(deletedOrder.getId()).isEqualTo(order.getId());
+    }
+
+    @Test
+    @DisplayName("Failed delete own order - not found")
+    public void test_failed_deleteOrder_notFound () {
+        // given
+        long badId = -1L;
+
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/orders/delete?id=" + badId, HttpMethod.DELETE,
+                new HttpEntity<>(headers), String.class).getBody();
+
+        // then
+        assertThat(response).contains(status(404)).contains(error("Not Found"));
+    }
+
+    @Test
+    @DisplayName("Failed delete own order - not order owner")
+    public void test_failed_deleteOrder_notOwner () throws JSONException {
+        // given
+        Account account = accountService.createAccount(AccountFullDto.builder()
+                .username("testUser")
+                .password(passwordEncoder.encode("password"))
+                .email("testMail@mail.com")
+                .role(Role.ROLE_USER).build());
+
+        Map<String, String> authRequestMap = new HashMap<>();
+        authRequestMap.put("login", account.getUsername());
+        authRequestMap.put("password", "password");
+        HttpHeaders headers1 = getTokenAsHeaders(authRequestMap);
+
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/orders/delete?id=" + order.getId(), HttpMethod.DELETE,
+                new HttpEntity<>(headers1), String.class).getBody();
+
+        // then
+        assertThat(response).contains(status(403)).contains(error("Forbidden"));
+    }
+
+    @Test
+    @DisplayName("Successful admin viewAll")
+    public void test_successful_adminViewAll () {
+        // when
+        @SuppressWarnings("rawtypes") // intentional raw use of parameterized class
+        List result = this.restTemplate.exchange(baseURL + "/admin/orders/all", HttpMethod.GET,
+                new HttpEntity<>(headers), List.class).getBody();
+
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).extracting("username", "id")
+                .containsExactly(adminFullDto.getUsername(), order.getId().intValue());
+    }
+
+    @Test
+    @DisplayName("Empty admin viewAll")
+    public void test_empty_adminViewAll () {
+        // given
+        orderService.deleteOrder(order.getId());
+
+        // when
+        @SuppressWarnings("rawtypes") // intentional raw use of parameterized class
+        List result = this.restTemplate.exchange(baseURL + "/admin/orders/all", HttpMethod.GET,
+                new HttpEntity<>(headers), List.class).getBody();
+
+        // then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Successful admin view")
+    public void test_successful_admin_view () {
+        // when
+        OrderGetDto orderGetDto = this.restTemplate.exchange(baseURL + "/admin/orders/view" + "?id=" + order.getId(),
+                HttpMethod.GET, new HttpEntity<>(headers), OrderGetDto.class).getBody();
+
+        // then
+        assertThat(orderGetDto).isNotNull().extracting("username", "id")
+                .containsExactly(adminFullDto.getUsername(), order.getId());
+    }
+
+    @Test
+    @DisplayName("Failed admin view")
+    public void test_failed_admin_view () {
+        // given
+        long badId = -1L;
+
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/admin/orders/view" + "?id=" + badId,
+                HttpMethod.GET, new HttpEntity<>(headers), String.class).getBody();
+
+        // then
+        assertThat(response).contains(status(404)).contains(error("Not Found"));
+    }
+
+    @Test
+    @DisplayName("Successful createOrder")
+    public void test_successful_adminCreateOrder () {
+        // given
+        CartDto cartDto1 = cartDto.toBuilder().paymentCreateDto(
+                cartDto.getPaymentCreateDto().toBuilder()
+                    .paymentProvider(PaymentProvider.MASTERCARD).build())
+                .build();
+
+        // when
+        OrderGetDto orderGetDto = this.restTemplate.exchange(baseURL + "/admin/orders/create?username=" + adminFullDto.getUsername(),
+                HttpMethod.POST, new HttpEntity<>(cartDto1, headers), OrderGetDto.class).getBody();
+
+        // then
+        assertThat(orderGetDto).extracting("id").isNotEqualTo(order.getId());
+        assertThat(orderGetDto).extracting("username").isEqualTo(adminFullDto.getUsername());
+    }
 
 
+
+
+
+
+    @Test
+    @DisplayName("Successful admin updateOrder")
+    public void test_successful_adminUpdateOrder_all () {
+        // given
+        long badId = -1L;
+
+        Map<Long, Integer> body = new HashMap<>();
+        body.put(product.getId(), 2);
+        body.put(product1.getId(), 1);
+        body.put(badId, 1);
+
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/admin/orders/update?id="+order.getId(), HttpMethod.PUT,
+                new HttpEntity<>(body, headers), String.class).getBody();
+        System.out.println(response);
+
+    }
+
+    @Test
+    @DisplayName("Failed admin updateOrder - not found")
+    public void test_failed_adminUpdateOrder_notFound () {
+        // given
+        long badId = -1L;
+
+        Map<Long, Integer> body = Collections.singletonMap(product.getId(), 2);
+
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/admin/orders/update?id="+badId, HttpMethod.PUT,
+                new HttpEntity<>(body, headers), String.class).getBody();
+
+        // then
+        assertThat(response).contains(status(404), error("Not Found"));
+    }
+
+    @Test
+    @DisplayName("Successful delete order")
+    public void test_successful_adminDeleteOrder () {
+        // when
+        OrderGetDto deletedOrder = this.restTemplate.exchange(baseURL + "/admin/orders/delete?id=" + order.getId(), HttpMethod.DELETE,
+                new HttpEntity<>(headers), OrderGetDto.class).getBody();
+
+        // then
+        List<OrderGetDto> orders = orderService.findAll();
+        assertTrue(orders.stream().map(OrderGetDto::getId).noneMatch(x -> Objects.equals(x, order.getId())));
+        assertThat(deletedOrder).isNotNull();
+        assertThat(deletedOrder.getId()).isEqualTo(order.getId());
+    }
+
+    @Test
+    @DisplayName("Failed delete order - not found")
+    public void test_failed_adminDeleteOrder_notFound () {
+        // given
+        long badId = -1L;
+
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/admin/orders/delete?id=" + badId, HttpMethod.DELETE,
+                new HttpEntity<>(headers), String.class).getBody();
+
+        // then
+        assertThat(response).contains(status(404)).contains(error("Not Found"));
+    }
 
     private HttpHeaders getTokenAsHeaders(Map<String, String> authRequestMap) throws JSONException {
         String tokenValue = new JSONObject(
