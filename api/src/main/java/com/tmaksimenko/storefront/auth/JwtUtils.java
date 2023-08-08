@@ -42,7 +42,7 @@ public class JwtUtils {
         return generateToken(claims);
     }
 
-    private String generateToken(Map<String, Object> claims) {
+    public String generateToken(Map<String, Object> claims) {
 
         return Jwts.builder()
                 .setHeaderParam("typ", Header.JWT_TYPE)
@@ -96,7 +96,7 @@ public class JwtUtils {
         return this.getTokenClaims(token).getExpiration();
     }
 
-    public Boolean checkExpiry(String token) {
+    private Boolean checkExpiry(String token) {
         return getExpiration(token).before(new Date());
     }
 
