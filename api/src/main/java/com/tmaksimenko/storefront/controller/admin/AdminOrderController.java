@@ -1,5 +1,6 @@
 package com.tmaksimenko.storefront.controller.admin;
 
+import com.tmaksimenko.storefront.annotation.ExcludeFromJacocoGeneratedReport;
 import com.tmaksimenko.storefront.dto.order.CartDto;
 import com.tmaksimenko.storefront.dto.order.OrderGetDto;
 import com.tmaksimenko.storefront.exception.OrderNotFoundException;
@@ -149,6 +150,7 @@ public class AdminOrderController {
 
     @Scheduled(fixedRate = 1800000)
     @CacheEvict(allEntries = true)
+    @ExcludeFromJacocoGeneratedReport
     public void emptyCache () {
     }
 }

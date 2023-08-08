@@ -1,5 +1,6 @@
 package com.tmaksimenko.storefront.controller.user;
 
+import com.tmaksimenko.storefront.annotation.ExcludeFromJacocoGeneratedReport;
 import com.tmaksimenko.storefront.dto.account.AccountDto;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
 import com.tmaksimenko.storefront.dto.account.AccountUpdateDto;
@@ -107,6 +108,7 @@ public class AccountController {
 
     @Scheduled(fixedRate = 1800000)
     @CacheEvict(allEntries = true)
+    @ExcludeFromJacocoGeneratedReport
     public void emptyCache () {
     }
 

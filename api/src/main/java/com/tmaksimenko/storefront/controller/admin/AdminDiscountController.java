@@ -1,5 +1,6 @@
 package com.tmaksimenko.storefront.controller.admin;
 
+import com.tmaksimenko.storefront.annotation.ExcludeFromJacocoGeneratedReport;
 import com.tmaksimenko.storefront.dto.discount.DiscountCreateDto;
 import com.tmaksimenko.storefront.dto.discount.DiscountDto;
 import com.tmaksimenko.storefront.enums.Role;
@@ -128,6 +129,7 @@ public class AdminDiscountController {
 
     @Scheduled(fixedRate = 1800000)
     @CacheEvict(allEntries = true)
+    @ExcludeFromJacocoGeneratedReport
     public void emptyCache () {
     }
 }
