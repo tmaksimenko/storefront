@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 public class PaymentCreateDto {
 
     PaymentInfo paymentInfo;
