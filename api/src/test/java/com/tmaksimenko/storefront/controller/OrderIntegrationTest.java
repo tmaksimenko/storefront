@@ -219,9 +219,10 @@ public class OrderIntegrationTest {
         assertThat(result).extracting("paymentGetDto").extracting("paymentStatus")
                 .isEqualTo(PaymentStatus.PAID);
     }
+
     @Test
-    @DisplayName("Successful view own order")
-    public void test_failed_viewSelfOrder () {
+    @DisplayName("Failed view own order - not found")
+    public void test_failed_viewSelfOrder_notFound () {
         // given
         long badId = -1L;
 
@@ -232,6 +233,26 @@ public class OrderIntegrationTest {
 
         // then
         assertThat(result).contains(status(404)).contains(error("Not Found"));
+    }
+
+    @Test
+    @DisplayName("Failed view own order - not order owner")
+    public void test_failed_viewSelfOrder_notOwner () throws JSONException {
+        // given
+        accountService.createAccount(testAccountDto);
+
+        Map<String, String> authRequestMap = new HashMap<>();
+        authRequestMap.put("login", testAccountDto.getUsername());
+        authRequestMap.put("password", "password");
+        HttpHeaders headers1 = getTokenAsHeaders(authRequestMap);
+
+        // when
+        String result = this.restTemplate.exchange(
+                baseURL + "/orders/view?id=" + order.getId(), HttpMethod.GET,
+                new HttpEntity<>(headers1), String.class).getBody();
+
+        // then
+        assertThat(result).contains(status(403)).contains(error("Forbidden"));
     }
 
     @Test
@@ -312,7 +333,6 @@ public class OrderIntegrationTest {
         // when
         String response = this.restTemplate.exchange(baseURL + "/orders/update?id="+order.getId(), HttpMethod.PUT,
                 new HttpEntity<>(body, headers), String.class).getBody();
-        System.out.println(response);
 
         // then
         assertThat(response)
@@ -540,8 +560,31 @@ public class OrderIntegrationTest {
         // when
         String response = this.restTemplate.exchange(baseURL + "/admin/orders/update?id="+order.getId(), HttpMethod.PUT,
                 new HttpEntity<>(body, headers), String.class).getBody();
+
+        // then
+        assertThat(response)
+                .contains("UPDATED PRODUCTS -> [" + product.getId())
+                .contains("ADDED PRODUCTS -> [" + product1.getId())
+                .contains("NOT FOUND -> [" + badId);
+    }
+
+    @Test
+    @DisplayName("Successful updateOrder - not updated")
+    public void test_successful_adminUpdateOrder_unUpdated () {
+        // given
+        Map<Long, Integer> body = new HashMap<>();
+        body.put(product.getId(), 1);
+
+        // when
+        String response = this.restTemplate.exchange(baseURL + "/admin/orders/update?id="+order.getId(), HttpMethod.PUT,
+                new HttpEntity<>(body, headers), String.class).getBody();
         System.out.println(response);
 
+        // then
+        assertThat(response)
+                .contains("UPDATED PRODUCTS -> []")
+                .contains("ADDED PRODUCTS -> []")
+                .contains("NOT FOUND -> []");
     }
 
     @Test
