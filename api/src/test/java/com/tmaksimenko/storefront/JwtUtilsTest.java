@@ -50,4 +50,5 @@ public class JwtUtilsTest {
         // when, then
         assertThrows(ExpiredJwtException.class, () -> spyJwtUtils.validateToken(token, user));
     }
+
 }
