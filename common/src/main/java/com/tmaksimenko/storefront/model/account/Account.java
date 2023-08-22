@@ -1,5 +1,6 @@
 package com.tmaksimenko.storefront.model.account;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tmaksimenko.storefront.dto.account.AccountFullDto;
 import com.tmaksimenko.storefront.enums.Role;
 import com.tmaksimenko.storefront.model.Order;
@@ -26,6 +27,7 @@ public class Account extends BaseEntity {
 
     String email;
 
+    @JsonIgnore
     String password;
 
     @Enumerated(EnumType.STRING)
